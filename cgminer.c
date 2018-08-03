@@ -1579,11 +1579,11 @@ static struct opt_table opt_config_table[] = {
 		     set_int_0_to_255, opt_show_intval, &opt_avalon8_h2ltime0_spd,
 		     "Set Avalon8 h2ltime0 spd, range 0-255."),
 	OPT_WITH_ARG("--avalon8-spdlow",
-		     set_int_0_to_3, opt_show_intval, &opt_avalon8_spdlow,
-		     "Set Avalon8 spdlow, range 0-3."),
+		     set_int_0_to_7, opt_show_intval, &opt_avalon8_spdlow,
+		     "Set Avalon8 spdlow, range 0-7."),
 	OPT_WITH_ARG("--avalon8-spdhigh",
-		     set_int_0_to_3, opt_show_intval, &opt_avalon8_spdhigh,
-		     "Set Avalon8 spdhigh, range 0-3."),
+		     set_int_0_to_7, opt_show_intval, &opt_avalon8_spdhigh,
+		     "Set Avalon8 spdhigh, range 0-7."),
 #endif
 #ifdef USE_AVALON_MINER
 	OPT_WITH_CBARG("--avalonm-voltage",
