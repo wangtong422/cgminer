@@ -2202,6 +2202,18 @@ static struct api_data *avalon8_api_stats(struct cgpu_info *avalon8)
 			statbuf[strlen(statbuf) - 1] = ']';
 
 			for (j = 0; j < info->miner_count[i]; j++) {
+				sprintf(buf, " PVT_T%d[", j);
+				strcat(statbuf, buf);
+				for (k = 0; k < info->asic_count[i]; k++) {
+					sprintf(buf, "%3d ", info->temp[i][j][k]);
+					strcat(statbuf, buf);
+				}
+
+				statbuf[strlen(statbuf) - 1] = ']';
+				statbuf[strlen(statbuf)] = '\0';
+			}
+
+			for (j = 0; j < info->miner_count[i]; j++) {
 				sprintf(buf, " PVT_V%d[", j);
 				strcat(statbuf, buf);
 				for (k = 0; k < info->asic_count[i]; k++) {
