@@ -855,6 +855,11 @@ static char *set_int_0_to_7(const char *arg, int *i)
 {
 	return set_int_range(arg, i, 0, 7);
 }
+
+static char *set_int_0_to_32767(const char *arg, int *i)
+{
+	return set_int_range(arg, i, 0, 32767);
+}
 #endif
 
 static char *set_int_0_to_5(const char *arg, int *i)
@@ -1557,6 +1562,45 @@ static struct opt_table opt_config_table[] = {
 	OPT_WITH_ARG("--avalon8-th-add",
 		     set_int_0_to_1, opt_show_intval, &opt_avalon8_th_add,
 		     "Set A3210 th add value"),
+	OPT_WITH_ARG("--avalon8-th-mssel",
+		     set_int_0_to_1, opt_show_intval, &opt_avalon8_th_mssel,
+		     "Set A3210 th mssel value"),
+	OPT_WITH_ARG("--avalon8-lv2-th-add",
+		     set_int_0_to_1, opt_show_intval, &opt_avalon8_lv2_th_add,
+		     "Set A3210 lv2 th add value"),
+	OPT_WITH_ARG("--avalon8-lv2-th-ms",
+		     set_int_0_to_32767, opt_show_intval, &opt_avalon8_lv2_th_ms,
+		     "Set A3210 lv2 th ms value"),
+	OPT_WITH_ARG("--avalon8-lv3-th-add",
+		     set_int_0_to_1, opt_show_intval, &opt_avalon8_lv3_th_add,
+		     "Set A3210 lv3 th add value"),
+	OPT_WITH_ARG("--avalon8-lv3-th-ms",
+		     set_int_0_to_32767, opt_show_intval, &opt_avalon8_lv3_th_ms,
+		     "Set A3210 lv3 th ms value"),
+	OPT_WITH_ARG("--avalon8-lv4-th-add",
+		     set_int_0_to_1, opt_show_intval, &opt_avalon8_lv4_th_add,
+		     "Set A3210 lv4 th add value"),
+	OPT_WITH_ARG("--avalon8-lv4-th-ms",
+		     set_int_0_to_32767, opt_show_intval, &opt_avalon8_lv4_th_ms,
+		     "Set A3210 lv4 th ms value"),
+	OPT_WITH_ARG("--avalon8-lv5-th-add",
+		     set_int_0_to_1, opt_show_intval, &opt_avalon8_lv5_th_add,
+		     "Set A3210 lv5 th add value"),
+	OPT_WITH_ARG("--avalon8-lv5-th-ms",
+		     set_int_0_to_32767, opt_show_intval, &opt_avalon8_lv5_th_ms,
+		     "Set A3210 lv5 th ms value"),
+	OPT_WITH_ARG("--avalon8-lv6-th-add",
+		     set_int_0_to_1, opt_show_intval, &opt_avalon8_lv6_th_add,
+		     "Set A3210 lv6 th add value"),
+	OPT_WITH_ARG("--avalon8-lv6-th-ms",
+		     set_int_0_to_32767, opt_show_intval, &opt_avalon8_lv6_th_ms,
+		     "Set A3210 lv6 th ms value"),
+	OPT_WITH_ARG("--avalon8-lv7-th-add",
+		     set_int_0_to_1, opt_show_intval, &opt_avalon8_lv7_th_add,
+		     "Set A3210 lv7 th add value"),
+	OPT_WITH_ARG("--avalon8-lv7-th-ms",
+		     set_int_0_to_32767, opt_show_intval, &opt_avalon8_lv7_th_ms,
+		     "Set A3210 lv7 th ms value"),
 	OPT_WITHOUT_ARG("--avalon8-iic-detect",
 		     opt_set_bool, &opt_avalon8_iic_detect,
 		     "Enable Avalon8 detect through iic controller"),

@@ -59,6 +59,7 @@ uint32_t opt_avalon8_th_init = AVA8_DEFAULT_TH_INIT;
 uint32_t opt_avalon8_th_ms = AVA8_DEFAULT_TH_MS;
 uint32_t opt_avalon8_th_timeout = AVA8_DEFAULT_TH_TIMEOUT;
 uint32_t opt_avalon8_th_add = AVA8_DEFAULT_TH_ADD;
+uint32_t opt_avalon8_th_mssel = AVA8_DEFAULT_TH_MSSEL;
 uint32_t opt_avalon8_nonce_mask = AVA8_DEFAULT_NONCE_MASK;
 uint32_t opt_avalon8_nonce_check = AVA8_DEFAULT_NONCE_CHECK;
 uint32_t opt_avalon8_mux_l2h = AVA8_DEFAULT_MUX_L2H;
@@ -67,6 +68,19 @@ uint32_t opt_avalon8_h2ltime0_spd = AVA8_DEFAULT_H2LTIME0_SPD;
 uint32_t opt_avalon8_roll_enable = AVA8_DEFAULT_ROLL_ENABLE;
 uint32_t opt_avalon8_spdlow = AVA8_DEFAULT_SPDLOW;
 uint32_t opt_avalon8_spdhigh = AVA8_DEFAULT_SPDHIGH;
+
+uint32_t opt_avalon8_lv2_th_ms = AVA8_DEFAULT_LV2_TH_MS;
+uint32_t opt_avalon8_lv3_th_ms = AVA8_DEFAULT_LV3_TH_MS;
+uint32_t opt_avalon8_lv4_th_ms = AVA8_DEFAULT_LV4_TH_MS;
+uint32_t opt_avalon8_lv5_th_ms = AVA8_DEFAULT_LV5_TH_MS;
+uint32_t opt_avalon8_lv6_th_ms = AVA8_DEFAULT_LV6_TH_MS;
+uint32_t opt_avalon8_lv7_th_ms = AVA8_DEFAULT_LV7_TH_MS;
+uint32_t opt_avalon8_lv2_th_add = AVA8_DEFAULT_LV2_TH_ADD;
+uint32_t opt_avalon8_lv3_th_add = AVA8_DEFAULT_LV3_TH_ADD;
+uint32_t opt_avalon8_lv4_th_add = AVA8_DEFAULT_LV4_TH_ADD;
+uint32_t opt_avalon8_lv5_th_add = AVA8_DEFAULT_LV5_TH_ADD;
+uint32_t opt_avalon8_lv6_th_add = AVA8_DEFAULT_LV6_TH_ADD;
+uint32_t opt_avalon8_lv7_th_add = AVA8_DEFAULT_LV7_TH_ADD;
 
 uint32_t cpm_table[] =
 {
@@ -1749,41 +1763,93 @@ static void avalon8_set_ss_param(struct cgpu_info *avalon8, int addr)
 
 	memset(send_pkg.data, 0, AVA8_P_DATA_LEN);
 
-	tmp = be32toh(opt_avalon8_th_pass);
+	tmp = (opt_avalon8_th_pass << 16) | opt_avalon8_th_fail;
+	tmp = be32toh(tmp);
 	memcpy(send_pkg.data, &tmp, 4);
 	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set th pass %u",
 			avalon8->drv->name, avalon8->device_id, addr,
 			opt_avalon8_th_pass);
-
-	tmp = be32toh(opt_avalon8_th_fail);
-	memcpy(send_pkg.data + 4, &tmp, 4);
 	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set th fail %u",
 			avalon8->drv->name, avalon8->device_id, addr,
 			opt_avalon8_th_fail);
 
-	tmp = be32toh(opt_avalon8_th_init);
-	memcpy(send_pkg.data + 8, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set th init %u",
+	tmp = ((opt_avalon8_th_add & 0x1) << 31) | ((opt_avalon8_th_mssel & 0x1) << 30)
+						 | ((opt_avalon8_th_ms & 0x7fff) << 16)
+						 |  (opt_avalon8_th_init & 0xffff);
+	tmp = be32toh(tmp);
+	memcpy(send_pkg.data + 4, &tmp, 4);
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set th add %u",
 			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_th_init);
-
-	tmp = be32toh(opt_avalon8_th_ms);
-	memcpy(send_pkg.data + 12, &tmp, 4);
+			(opt_avalon8_th_add & 0x1));
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set th mssel %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_th_mssel & 0x1));
 	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set th ms %u",
 			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_th_ms);
+			(opt_avalon8_th_ms & 0x7fff));
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set th init %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_th_init & 0xffff));
 
 	tmp = be32toh(opt_avalon8_th_timeout);
-	memcpy(send_pkg.data + 16, &tmp, 4);
+	memcpy(send_pkg.data + 8, &tmp, 4);
 	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set th timeout %u",
 			avalon8->drv->name, avalon8->device_id, addr,
 			opt_avalon8_th_timeout);
 
-	tmp = be32toh(opt_avalon8_th_add);
-	memcpy(send_pkg.data + 20, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set th add %u",
+	tmp = ((opt_avalon8_lv3_th_add & 0x1) << 31) | ((opt_avalon8_lv2_th_add & 0x1) << 15)
+						     | ((opt_avalon8_lv3_th_ms & 0x7fff) << 16)
+						     |  (opt_avalon8_lv2_th_ms & 0x7fff);
+	tmp = be32toh(tmp);
+	memcpy(send_pkg.data + 12, &tmp, 4);
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv3 th add %u",
 			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_th_add);
+			(opt_avalon8_lv3_th_add & 0x1));
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv3 th ms %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_lv3_th_ms & 0x7fff));
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv2 th add %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_lv2_th_add & 0x1));
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv2 th ms %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_lv2_th_ms & 0x7fff));
+
+	tmp = ((opt_avalon8_lv5_th_add & 0x1) << 31) | ((opt_avalon8_lv4_th_add & 0x1) << 15)
+						     | ((opt_avalon8_lv5_th_ms & 0x7fff) << 16)
+						     |  (opt_avalon8_lv4_th_ms & 0x7fff);
+	tmp = be32toh(tmp);
+	memcpy(send_pkg.data + 16, &tmp, 4);
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv5 th add %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_lv5_th_add & 0x1));
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv5 th ms %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_lv5_th_ms & 0x7fff));
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv4 th add %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_lv4_th_add & 0x1));
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv4 th ms %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_lv4_th_ms & 0x7fff));
+
+	tmp = ((opt_avalon8_lv7_th_add & 0x1) << 31) | ((opt_avalon8_lv6_th_add & 0x1) << 15)
+						     | ((opt_avalon8_lv7_th_ms & 0x7fff) << 16)
+						     |  (opt_avalon8_lv6_th_ms & 0x7fff);
+	tmp = be32toh(tmp);
+	memcpy(send_pkg.data + 20, &tmp, 4);
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv7 th add %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_lv7_th_add & 0x1));
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv7 th ms %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_lv7_th_ms & 0x7fff));
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv6 th add %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_lv6_th_add & 0x1));
+	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv6 th ms %u",
+			avalon8->drv->name, avalon8->device_id, addr,
+			(opt_avalon8_lv6_th_ms & 0x7fff));
 
 	/* Package the data */
 	avalon8_init_pkg(&send_pkg, AVA8_P_SET_SS, 1, 1);

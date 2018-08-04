@@ -71,6 +71,7 @@
 #define AVA8_DEFAULT_TH_INIT		32767
 #define AVA8_DEFAULT_TH_ADD		1
 #define AVA8_DEFAULT_TH_MS		5
+#define AVA8_DEFAULT_TH_MSSEL		0
 #define AVA8_DEFAULT_TH_TIMEOUT		16000
 #define AVA8_DEFAULT_NONCE_MASK		27
 #define AVA8_DEFAULT_NONCE_CHECK	1
@@ -80,6 +81,19 @@
 #define AVA8_DEFAULT_ROLL_ENABLE	1
 #define AVA8_DEFAULT_SPDLOW		1
 #define AVA8_DEFAULT_SPDHIGH		7
+
+#define AVA8_DEFAULT_LV2_TH_MS		0
+#define AVA8_DEFAULT_LV3_TH_MS		0
+#define AVA8_DEFAULT_LV4_TH_MS		0
+#define AVA8_DEFAULT_LV5_TH_MS		0
+#define AVA8_DEFAULT_LV6_TH_MS		0
+#define AVA8_DEFAULT_LV7_TH_MS		0
+#define AVA8_DEFAULT_LV2_TH_ADD		0
+#define AVA8_DEFAULT_LV3_TH_ADD		0
+#define AVA8_DEFAULT_LV4_TH_ADD		0
+#define AVA8_DEFAULT_LV5_TH_ADD		0
+#define AVA8_DEFAULT_LV6_TH_ADD		0
+#define AVA8_DEFAULT_LV7_TH_ADD		0
 
 #define AVA8_DEFAULT_IIC_DETECT		false
 
@@ -327,6 +341,7 @@ extern uint32_t opt_avalon8_th_init;
 extern uint32_t opt_avalon8_th_ms;
 extern uint32_t opt_avalon8_th_timeout;
 extern uint32_t opt_avalon8_th_add;
+extern uint32_t opt_avalon8_th_mssel;
 extern uint32_t opt_avalon8_nonce_mask;
 extern uint32_t opt_avalon8_nonce_check;
 extern uint32_t opt_avalon8_mux_l2h;
@@ -335,5 +350,17 @@ extern uint32_t opt_avalon8_h2ltime0_spd;
 extern uint32_t opt_avalon8_roll_enable;
 extern uint32_t opt_avalon8_spdlow;
 extern uint32_t opt_avalon8_spdhigh;
+extern uint32_t opt_avalon8_lv2_th_ms;
+extern uint32_t opt_avalon8_lv3_th_ms;
+extern uint32_t opt_avalon8_lv4_th_ms;
+extern uint32_t opt_avalon8_lv5_th_ms;
+extern uint32_t opt_avalon8_lv6_th_ms;
+extern uint32_t opt_avalon8_lv7_th_ms;
+extern uint32_t opt_avalon8_lv2_th_add;
+extern uint32_t opt_avalon8_lv3_th_add;
+extern uint32_t opt_avalon8_lv4_th_add;
+extern uint32_t opt_avalon8_lv5_th_add;
+extern uint32_t opt_avalon8_lv6_th_add;
+extern uint32_t opt_avalon8_lv7_th_add;
 #endif /* USE_AVALON8 */
 #endif /* _AVALON8_H_ */
