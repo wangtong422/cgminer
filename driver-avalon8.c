@@ -24,6 +24,15 @@ int opt_avalon8_temp_target = AVA8_DEFAULT_TEMP_TARGET;
 int opt_avalon8_fan_min = AVA8_DEFAULT_FAN_MIN;
 int opt_avalon8_fan_max = AVA8_DEFAULT_FAN_MAX;
 
+int opt_avalon8_spdcore_miner = 0;
+int opt_avalon8_spdcore_asic = 0;
+int opt_avalon8_spdcore_en = 0;
+
+int opt_avalon8_sigfreq_miner = 0;
+int opt_avalon8_sigfreq_asic = 0;
+int opt_avalon8_sigfreq_vale = 0;
+int opt_avalon8_sigfreq_en = 0;
+
 int opt_avalon8_voltage_level = AVA8_INVALID_VOLTAGE_LEVEL;
 int opt_avalon8_voltage_level_offset = AVA8_DEFAULT_VOLTAGE_LEVEL_OFFSET;
 
@@ -265,6 +274,43 @@ char *set_avalon8_fan(char *arg)
 
 	opt_avalon8_fan_min = val1;
 	opt_avalon8_fan_max = val2;
+
+	return NULL;
+}
+
+char *set_avalon8_spdcore(char *arg)
+{
+	int val1, val2, ret;
+
+	ret = sscanf(arg, "%d-%d", &val1, &val2);
+	if (ret <= 1)
+		return "No value passed to avalon8-spdcore";
+
+	if (val1 < 0 || val1 > AVA8_DEFAULT_MINER_CNT || val2 < 0 || val2 > AVA8_DEFAULT_ASIC_MAX)
+		return "Invalid value passed to avalon8-spdcore";
+
+	opt_avalon8_spdcore_miner = val1;
+	opt_avalon8_spdcore_asic = val2;
+	opt_avalon8_spdcore_en = 1;
+
+	return NULL;
+}
+
+char *set_avalon8_sigfreq(char *arg)
+{
+	int val1, val2, val3, ret;
+
+	ret = sscanf(arg, "%d-%d-%d", &val1, &val2, &val3);
+	if (ret <= 1)
+		return "No value passed to avalon8-sigfreq";
+
+	if (val1 < 0 || val1 > AVA8_DEFAULT_MINER_CNT || val2 < 0 || val2 > AVA8_DEFAULT_ASIC_MAX)
+		return "Invalid value passed to avalon8-sigfreq";
+
+	opt_avalon8_sigfreq_miner = val1;
+	opt_avalon8_sigfreq_asic = val2;
+	opt_avalon8_sigfreq_vale = val3;
+	opt_avalon8_sigfreq_en = 1;
 
 	return NULL;
 }
@@ -1510,6 +1556,24 @@ static int polling(struct cgpu_info *avalon8)
 			send_pkg.data[8] = 0x1;
 		}
 
+		if (opt_avalon8_spdcore_en) {
+			opt_avalon8_spdcore_en = 0;
+
+			send_pkg.data[9] = 1;
+			send_pkg.data[10] = opt_avalon8_spdcore_miner;
+			send_pkg.data[11] = opt_avalon8_spdcore_asic;
+		}
+
+		if (opt_avalon8_sigfreq_en) {
+			opt_avalon8_sigfreq_en = 0;
+
+			send_pkg.data[12] = 1;
+			send_pkg.data[13] = opt_avalon8_sigfreq_miner;
+			send_pkg.data[14] = opt_avalon8_sigfreq_asic;
+			send_pkg.data[15] = (opt_avalon8_sigfreq_vale >> 8) & 0xff;
+			send_pkg.data[16] = opt_avalon8_sigfreq_vale & 0xff;
+		}
+
 		avalon8_init_pkg(&send_pkg, AVA8_P_POLLING, 1, 1);
 		ret = avalon8_iic_xfer_pkg(avalon8, i, &send_pkg, &ar);
 		if (ret == AVA8_SEND_OK)
@@ -2636,6 +2700,42 @@ static char *avalon8_set_device(struct cgpu_info *avalon8, char *option, char *s
 		applog(LOG_NOTICE, "%s-%d: Update fan to %d-%d",
 		       avalon8->drv->name, avalon8->device_id,
 		       opt_avalon8_fan_min, opt_avalon8_fan_max);
+
+		return NULL;
+	}
+
+	if (strcasecmp(option, "spdcore") == 0) {
+		if (!setting || !*setting) {
+			sprintf(replybuf, "missing spdcore value");
+			return replybuf;
+		}
+
+		if (set_avalon8_spdcore(setting)) {
+			sprintf(replybuf, "invalid spdcore value, valid range 1-26");
+			return replybuf;
+		}
+
+		applog(LOG_NOTICE, "%s-%d: Update spdcore to %d-%d",
+		       avalon8->drv->name, avalon8->device_id,
+		       opt_avalon8_spdcore_miner, opt_avalon8_spdcore_asic);
+
+		return NULL;
+	}
+
+	if (strcasecmp(option, "sigfreq") == 0) {
+		if (!setting || !*setting) {
+			sprintf(replybuf, "missing sigfreq value");
+			return replybuf;
+		}
+
+		if (set_avalon8_sigfreq(setting)) {
+			sprintf(replybuf, "invalid sigfreq value, valid range 1-26");
+			return replybuf;
+		}
+
+		applog(LOG_NOTICE, "%s-%d: Update sigfreq to %d-%d-%d",
+		       avalon8->drv->name, avalon8->device_id,
+		       opt_avalon8_sigfreq_miner, opt_avalon8_sigfreq_asic, opt_avalon8_sigfreq_vale);
 
 		return NULL;
 	}
