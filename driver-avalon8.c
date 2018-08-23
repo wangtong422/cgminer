@@ -1665,7 +1665,7 @@ static void avalon8_init_setting(struct cgpu_info *avalon8, int addr)
 
 	memset(send_pkg.data, 0, AVA8_P_DATA_LEN);
 
-	tmp = be32toh(opt_avalon8_freq_sel + 1);
+	tmp = be32toh(opt_avalon8_freq_sel);
 	memcpy(send_pkg.data + 4, &tmp, 4);
 
 	/*
