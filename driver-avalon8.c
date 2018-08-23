@@ -42,9 +42,6 @@ int opt_avalon8_freq[AVA8_DEFAULT_PLL_CNT] =
 	AVA8_DEFAULT_FREQUENCY,
 	AVA8_DEFAULT_FREQUENCY,
 	AVA8_DEFAULT_FREQUENCY,
-	AVA8_DEFAULT_FREQUENCY,
-	AVA8_DEFAULT_FREQUENCY,
-	AVA8_DEFAULT_FREQUENCY
 };
 
 int opt_avalon8_freq_sel = AVA8_DEFAULT_FREQUENCY_SEL;
@@ -68,7 +65,6 @@ uint32_t opt_avalon8_th_init = AVA8_DEFAULT_TH_INIT;
 uint32_t opt_avalon8_th_ms = AVA8_DEFAULT_TH_MS;
 uint32_t opt_avalon8_th_timeout = AVA8_DEFAULT_TH_TIMEOUT;
 uint32_t opt_avalon8_th_add = AVA8_DEFAULT_TH_ADD;
-uint32_t opt_avalon8_th_mssel = AVA8_DEFAULT_TH_MSSEL;
 uint32_t opt_avalon8_nonce_mask = AVA8_DEFAULT_NONCE_MASK;
 uint32_t opt_avalon8_nonce_check = AVA8_DEFAULT_NONCE_CHECK;
 uint32_t opt_avalon8_mux_l2h = AVA8_DEFAULT_MUX_L2H;
@@ -78,80 +74,60 @@ uint32_t opt_avalon8_roll_enable = AVA8_DEFAULT_ROLL_ENABLE;
 uint32_t opt_avalon8_spdlow = AVA8_DEFAULT_SPDLOW;
 uint32_t opt_avalon8_spdhigh = AVA8_DEFAULT_SPDHIGH;
 
-uint32_t opt_avalon8_lv2_th_msadd = AVA8_DEFAULT_LV2_TH_MSADD;
-uint32_t opt_avalon8_lv2_th_ms = AVA8_DEFAULT_LV2_TH_MS;
-uint32_t opt_avalon8_lv3_th_msadd = AVA8_DEFAULT_LV3_TH_MSADD;
-uint32_t opt_avalon8_lv3_th_ms = AVA8_DEFAULT_LV3_TH_MS;
-uint32_t opt_avalon8_lv4_th_msadd = AVA8_DEFAULT_LV4_TH_MSADD;
-uint32_t opt_avalon8_lv4_th_ms = AVA8_DEFAULT_LV4_TH_MS;
-uint32_t opt_avalon8_lv5_th_msadd = AVA8_DEFAULT_LV5_TH_MSADD;
-uint32_t opt_avalon8_lv5_th_ms = AVA8_DEFAULT_LV5_TH_MS;
-uint32_t opt_avalon8_lv6_th_msadd = AVA8_DEFAULT_LV6_TH_MSADD;
-uint32_t opt_avalon8_lv6_th_ms = AVA8_DEFAULT_LV6_TH_MS;
-uint32_t opt_avalon8_lv7_th_msadd = AVA8_DEFAULT_LV7_TH_MSADD;
-uint32_t opt_avalon8_lv7_th_ms = AVA8_DEFAULT_LV7_TH_MS;
-
 /* Setting timeout need freq vlaues */
 uint32_t avalon8_set_timeout_freq = 1;
 
 uint32_t cpm_table[] =
 {
-	0x00000000,
-	0x0c041205,
-	0x0c041203,
-	0x0c031103,
-	0x0c041103,
-	0x0c079183,
-	0x0c079503,
-	0x0c07ed83,
-	0x0c040603,
-	0x0c06c703,
-	0x0c078703,
-	0x0c042583,
-	0x0c078683,
-	0x0c068603,
-	0x0c070603,
-	0x0c078603,
-	0x0c040503,
-	0x0c044503,
-	0x0c048503,
-	0x0c04c503,
-	0x0c050503,
-	0x0c054503,
-	0x0c058503,
-	0x0c05c503,
-	0x0c060503,
-	0x0c064503,
-	0x0c068503,
-	0x0c06c503,
-	0x0c070503,
-	0x0c074503,
-	0x0c078503,
-	0x0c07c503,
-	0x0c040483,
-	0x0c042483,
-	0x0c044483,
-	0x0c046483,
-	0x0c048483,
-	0x0c04a483,
-	0x0c04c483,
-	0x0c04e483,
-	0x0c050483,
-	0x0c052483,
-	0x0c054483,
-	0x0c056483,
-	0x0c058483,
-	0x0c05a483,
-	0x0c05c483,
-	0x0c05e483,
-	0x0c060483,
-	0x0c062483,
-	0x0c064483,
-	0x0c066483,
-	0x0c068483,
-	0x0c06a483,
-	0x0c06c483,
-	0x0c06e483
+	0x04400000,
+	0x04000000,
+	0x008ffbe1,
+	0x0097fde1,
+	0x009fffe1,
+	0x009ddf61,
+	0x009dcf61,
+	0x009f47c1,
+	0x009fbfe1,
+	0x009f37c1,
+	0x009daf61,
+	0x009b26c1,
+	0x009da761,
+	0x00999e61,
+	0x009b9ee1,
+	0x009d9f61,
+	0x009f9fe1,
+	0x00991641,
+	0x009a96a1,
+	0x009c1701,
+	0x009d9761,
+	0x009f17c1,
+	0x00958d61,
+	0x00968da1,
+	0x00978de1,
+	0x00988e21,
+	0x00998e61,
+	0x009a8ea1,
+	0x009b8ee1,
+	0x009c8f21,
+	0x009d8f61,
+	0x009e8fa1,
+	0x009f8fe1,
+	0x00900401,
+	0x00908421,
+	0x00910441,
+	0x00918461,
+	0x00920481,
+	0x009284a1,
+	0x009304c1,
+	0x009384e1,
+	0x00940501,
+	0x00948521,
+	0x00950541,
+	0x00958561,
+	0x00960581,
+	0x009685a1,
+	0x009705c1,
+	0x009785e1
 };
 
 struct avalon8_dev_description avalon8_dev_table[] = {
@@ -167,10 +143,7 @@ struct avalon8_dev_description avalon8_dev_table[] = {
 			AVA8_DEFAULT_FREQUENCY_0M,
 			AVA8_DEFAULT_FREQUENCY_0M,
 			AVA8_DEFAULT_FREQUENCY_0M,
-			AVA8_DEFAULT_FREQUENCY_650M,
-			AVA8_DEFAULT_FREQUENCY_0M,
-			AVA8_DEFAULT_FREQUENCY_0M,
-			AVA8_DEFAULT_FREQUENCY_0M
+			AVA8_DEFAULT_FREQUENCY_650M
 		}
 	}
 };
@@ -723,26 +696,6 @@ static int decode_pkg(struct cgpu_info *avalon8, struct avalon8_ret *ar, int mod
 				memcpy(&pvt_tmp, ar->data + 2 + 2 * i, 2);
 				pvt_tmp = be16toh(pvt_tmp);
 				info->core_volt[modular_id][miner][chip_id][i] = decode_pvt_volt(pvt_tmp);
-			}
-		}
-		break;
-	case AVA8_P_STATUS_ASIC:
-		{
-			if (!info->asic_count[modular_id])
-				break;
-
-			applog(LOG_DEBUG, "%s-%d-%d: AVA8_P_STATUS_ASIC %d-%d",
-					avalon8->drv->name, avalon8->device_id, modular_id,
-					0, ar->idx);
-
-			if (!ar->cnt) {
-				for (i = 0; i < 4; i++) {
-					memcpy(&tmp, ar->data + i * 8, 4);
-					info->get_asic[modular_id][0][ar->idx + i][0] = be32toh(tmp);
-
-					memcpy(&tmp, ar->data + i * 8 + 4, 4);
-					info->get_asic[modular_id][0][ar->idx + i][1] = be32toh(tmp);
-				}
 			}
 		}
 		break;
@@ -1860,81 +1813,8 @@ static void avalon8_set_ss_param(struct cgpu_info *avalon8, int addr)
 			avalon8->drv->name, avalon8->device_id, addr,
 			opt_avalon8_th_add);
 
-	tmp = be32toh(opt_avalon8_th_mssel);
-	memcpy(send_pkg.data + 24, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set th mssel %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_th_mssel);
-
 	/* Package the data */
 	avalon8_init_pkg(&send_pkg, AVA8_P_SET_SS, 1, 1);
-
-	if (addr == AVA8_MODULE_BROADCAST)
-		avalon8_send_bc_pkgs(avalon8, &send_pkg);
-	else
-		avalon8_iic_xfer_pkg(avalon8, addr, &send_pkg, NULL);
-}
-
-static void avalon8_set_ss_spdth(struct cgpu_info *avalon8, int addr)
-{
-	struct avalon8_pkg send_pkg;
-	uint32_t tmp;
-
-	if (!opt_avalon8_smart_speed)
-		return;
-
-	memset(send_pkg.data, 0, AVA8_P_DATA_LEN);
-
-	tmp = be32toh(opt_avalon8_lv2_th_msadd);
-	memcpy(send_pkg.data, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv2 th msadd %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_lv2_th_msadd);
-
-	tmp = be32toh(opt_avalon8_lv2_th_ms);
-	memcpy(send_pkg.data + 4, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv2 th ms %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_lv2_th_ms);
-
-	tmp = be32toh(opt_avalon8_lv3_th_msadd);
-	memcpy(send_pkg.data + 8, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv3 th msadd %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_lv3_th_msadd);
-
-	tmp = be32toh(opt_avalon8_lv3_th_ms);
-	memcpy(send_pkg.data + 12, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv3 th ms %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_lv3_th_ms);
-
-	tmp = be32toh(opt_avalon8_lv4_th_msadd);
-	memcpy(send_pkg.data + 16, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv4 th msadd %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_lv4_th_msadd);
-
-	tmp = be32toh(opt_avalon8_lv4_th_ms);
-	memcpy(send_pkg.data + 20, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv4 th ms %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_lv4_th_ms);
-
-	tmp = be32toh(opt_avalon8_lv5_th_msadd);
-	memcpy(send_pkg.data + 24, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv5 th msadd %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_lv5_th_msadd);
-
-	tmp = be32toh(opt_avalon8_lv5_th_ms);
-	memcpy(send_pkg.data + 28, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv5 th ms %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_lv5_th_ms);
-
-	/* Package the data */
-	avalon8_init_pkg(&send_pkg, AVA8_P_SET_SS_SPDTH, 1, 1);
 
 	if (addr == AVA8_MODULE_BROADCAST)
 		avalon8_send_bc_pkgs(avalon8, &send_pkg);
@@ -1966,30 +1846,6 @@ static void avalon8_set_finish(struct cgpu_info *avalon8, int addr)
 	tmp = AVA8_ASIC_TIMEOUT_CONST / avalon8_set_timeout_freq * 83 / 100;
 	tmp = be32toh(tmp);
 	memcpy(send_pkg.data + 4, &tmp, 4);
-
-	tmp = be32toh(opt_avalon8_lv6_th_msadd);
-	memcpy(send_pkg.data + 8, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv6 th msadd %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_lv6_th_msadd);
-
-	tmp = be32toh(opt_avalon8_lv6_th_ms);
-	memcpy(send_pkg.data + 12, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv6 th ms %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_lv6_th_ms);
-
-	tmp = be32toh(opt_avalon8_lv7_th_msadd);
-	memcpy(send_pkg.data + 16, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv7 th msadd %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_lv7_th_msadd);
-
-	tmp = be32toh(opt_avalon8_lv7_th_ms);
-	memcpy(send_pkg.data + 20, &tmp, 4);
-	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set lv7 th ms %u",
-			avalon8->drv->name, avalon8->device_id, addr,
-			opt_avalon8_lv7_th_ms);
 
 	avalon8_init_pkg(&send_pkg, AVA8_P_SET_FIN, 1, 1);
 	avalon8_iic_xfer_pkg(avalon8, addr, &send_pkg, NULL);
@@ -2133,13 +1989,14 @@ static int64_t avalon8_scanhash(struct thr_info *thr)
 		}
 		if (update_settings) {
 			cg_wlock(&info->update_lock);
+
 			avalon8_set_voltage_level(avalon8, i, info->set_voltage_level[i]);
+
 			for (j = 0; j < info->miner_count[i]; j++)
 				avalon8_set_freq(avalon8, i, j, info->set_frequency[i][j]);
-			if (opt_avalon8_smart_speed) {
+
+			if (opt_avalon8_smart_speed)
 				avalon8_set_ss_param(avalon8, i);
-				avalon8_set_ss_spdth(avalon8, i);
-			}
 
 			avalon8_set_finish(avalon8, i);
 			cg_wunlock(&info->update_lock);
@@ -2261,18 +2118,6 @@ static struct api_data *avalon8_api_stats(struct cgpu_info *avalon8)
 		statbuf[strlen(statbuf) - 1] = ']';
 
 		sprintf(buf, " HW[%"PRIu64"]", info->hw_works[i]);
-		strcat(statbuf, buf);
-
-		a = 0;
-		b = 0;
-		for (j = 0; j < info->miner_count[i]; j++) {
-			for (k = 0; k < AVA8_DEFAULT_CORE_COUNT; k++) {
-				a += info->get_asic[i][j][k][0];
-				b += info->get_asic[i][j][k][1];
-			}
-		}
-		dh = b ? (b / (a + b)) * 100: 0;
-		sprintf(buf, " DH[%.3f%%]", dh);
 		strcat(statbuf, buf);
 
 		sprintf(buf, " Temp[%d]", info->temp_mm[i]);
@@ -2403,22 +2248,6 @@ static struct api_data *avalon8_api_stats(struct cgpu_info *avalon8)
 						sprintf(buf, "%d ", info->core_volt[i][j][k][m]);
 						strcat(statbuf, buf);
 					}
-
-					statbuf[strlen(statbuf) - 1] = ']';
-					statbuf[strlen(statbuf)] = '\0';
-				}
-			}
-
-			for (j = 0; j < info->miner_count[i]; j++) {
-				for (k = 0; k < AVA8_DEFAULT_CORE_COUNT; k++) {
-					a = info->get_asic[i][j][k][0];
-					b = info->get_asic[i][j][k][1];
-					dh = b ? (b / (a + b)) * 100: 0;
-
-					sprintf(buf, " SPDLOG%d_%03d[", j, k);
-					strcat(statbuf, buf);
-					sprintf(buf, "%-5d %-5d %-7.3f%%", info->get_asic[i][j][k][0], info->get_asic[i][j][k][1], dh);
-					strcat(statbuf, buf);
 
 					statbuf[strlen(statbuf) - 1] = ']';
 					statbuf[strlen(statbuf)] = '\0';

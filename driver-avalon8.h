@@ -56,10 +56,10 @@
 #define AVA8_DEFAULT_MODULARS	7	/* Only support 6 modules maximum with one AUC */
 #define AVA8_DEFAULT_MINER_CNT	1
 #define AVA8_DEFAULT_ASIC_MAX	1
-#define AVA8_DEFAULT_PLL_CNT	7
+#define AVA8_DEFAULT_PLL_CNT	4
 #define AVA8_DEFAULT_PMU_CNT	2
 #define AVA8_DEFAULT_CORE_VOLT_CNT	8
-#define AVA8_DEFAULT_CORE_COUNT		256
+#define AVA8_DEFAULT_CORE_COUNT		172
 
 #define AVA8_DEFAULT_POLLING_DELAY	10 /* ms */
 #define AVA8_DEFAULT_NTIME_OFFSET	2
@@ -73,7 +73,6 @@
 #define AVA8_DEFAULT_TH_INIT	32767
 #define AVA8_DEFAULT_TH_ADD	1
 #define AVA8_DEFAULT_TH_MS	5
-#define AVA8_DEFAULT_TH_MSSEL	0
 #define AVA8_DEFAULT_TH_TIMEOUT	20000
 #define AVA8_DEFAULT_NONCE_MASK 24
 #define AVA8_DEFAULT_NONCE_CHECK	1
@@ -81,21 +80,8 @@
 #define AVA8_DEFAULT_MUX_H2L	1
 #define AVA8_DEFAULT_H2LTIME0_SPD	3
 #define AVA8_DEFAULT_ROLL_ENABLE	1
-#define AVA8_DEFAULT_SPDLOW            1
-#define AVA8_DEFAULT_SPDHIGH           7
-
-#define AVA8_DEFAULT_LV2_TH_MSADD	0
-#define AVA8_DEFAULT_LV2_TH_MS		0
-#define AVA8_DEFAULT_LV3_TH_MSADD	0
-#define AVA8_DEFAULT_LV3_TH_MS		0
-#define AVA8_DEFAULT_LV4_TH_MSADD	0
-#define AVA8_DEFAULT_LV4_TH_MS		0
-#define AVA8_DEFAULT_LV5_TH_MSADD	0
-#define AVA8_DEFAULT_LV5_TH_MS		0
-#define AVA8_DEFAULT_LV6_TH_MSADD	0
-#define AVA8_DEFAULT_LV6_TH_MS		0
-#define AVA8_DEFAULT_LV7_TH_MSADD	0
-#define AVA8_DEFAULT_LV7_TH_MS		0
+#define AVA8_DEFAULT_SPDLOW            0
+#define AVA8_DEFAULT_SPDHIGH           3
 
 #define AVA8_DEFAULT_IIC_DETECT	false
 
@@ -349,25 +335,12 @@ extern uint32_t opt_avalon8_th_init;
 extern uint32_t opt_avalon8_th_ms;
 extern uint32_t opt_avalon8_th_timeout;
 extern uint32_t opt_avalon8_th_add;
-extern uint32_t opt_avalon8_th_mssel;
 extern uint32_t opt_avalon8_nonce_mask;
 extern uint32_t opt_avalon8_nonce_check;
 extern uint32_t opt_avalon8_mux_l2h;
 extern uint32_t opt_avalon8_mux_h2l;
 extern uint32_t opt_avalon8_h2ltime0_spd;
 extern uint32_t opt_avalon8_roll_enable;
-extern uint32_t opt_avalon8_lv2_th_msadd;
-extern uint32_t opt_avalon8_lv2_th_ms;
-extern uint32_t opt_avalon8_lv3_th_msadd;
-extern uint32_t opt_avalon8_lv3_th_ms;
-extern uint32_t opt_avalon8_lv4_th_msadd;
-extern uint32_t opt_avalon8_lv4_th_ms;
-extern uint32_t opt_avalon8_lv5_th_msadd;
-extern uint32_t opt_avalon8_lv5_th_ms;
-extern uint32_t opt_avalon8_lv6_th_msadd;
-extern uint32_t opt_avalon8_lv6_th_ms;
-extern uint32_t opt_avalon8_lv7_th_msadd;
-extern uint32_t opt_avalon8_lv7_th_ms;
 extern uint32_t opt_avalon8_spdlow;
 extern uint32_t opt_avalon8_spdhigh;
 #endif /* USE_AVALON8 */
