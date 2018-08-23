@@ -444,10 +444,10 @@ static inline uint32_t adjust_fan(struct avalon8_info *info, int id)
 		if (tdiff < 0)
 			goto out;
 		/* Adjust fanspeed by temperature over and any further rise */
-		info->fan_pct[id] += delta + tdiff;
+		info->fan_pct[id] += opt_avalon8_fan_max; /* info->fan_pct[id] += delta + tdiff; */
 	} else {
 		/* Below target temperature */
-		int diff = tdiff;
+		int diff = delta; /* int diff = tdiff; Sth. wrong with tdiff? It will keep lower than target */
 
 		if (tdiff > 0) {
 			int divisor = -delta / AVA8_DEFAULT_TEMP_HYSTERESIS + 1;
@@ -459,6 +459,7 @@ static inline uint32_t adjust_fan(struct avalon8_info *info, int id)
 			/* Is the temp below optimal and unchanging, gently lower speed */
 			if (t < info->temp_target[id] - AVA8_DEFAULT_TEMP_HYSTERESIS && !tdiff)
 				diff -= 1;
+			diff = (delta == 0) ? 0 : diff;
 		}
 		info->fan_pct[id] += diff;
 	}
