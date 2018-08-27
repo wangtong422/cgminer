@@ -1775,7 +1775,7 @@ static void avalon8_set_ss_param(struct cgpu_info *avalon8, int addr)
 			opt_avalon8_th_fail);
 
 	tmp = ((opt_avalon8_th_add & 0x1) << 31) | ((opt_avalon8_th_mssel & 0x1) << 30)
-						 | ((opt_avalon8_th_ms & 0x7fff) << 16)
+						 | ((opt_avalon8_th_ms & 0x3fff) << 16)
 						 |  (opt_avalon8_th_init & 0xffff);
 	tmp = be32toh(tmp);
 	memcpy(send_pkg.data + 4, &tmp, 4);
@@ -1787,7 +1787,7 @@ static void avalon8_set_ss_param(struct cgpu_info *avalon8, int addr)
 			(opt_avalon8_th_mssel & 0x1));
 	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set th ms %u",
 			avalon8->drv->name, avalon8->device_id, addr,
-			(opt_avalon8_th_ms & 0x7fff));
+			(opt_avalon8_th_ms & 0x3fff));
 	applog(LOG_DEBUG, "%s-%d-%d: avalon8 set th init %u",
 			avalon8->drv->name, avalon8->device_id, addr,
 			(opt_avalon8_th_init & 0xffff));
