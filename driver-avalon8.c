@@ -33,6 +33,10 @@ int opt_avalon8_sigfreq_asic = 0;
 int opt_avalon8_sigfreq_vale = 0;
 int opt_avalon8_sigfreq_en = 0;
 
+int opt_avalon8_rstfifo_miner = 0;
+int opt_avalon8_rstfifo_asic = 0;
+int opt_avalon8_rstfifo_en = 0;
+
 int opt_avalon8_voltage_level = AVA8_INVALID_VOLTAGE_LEVEL;
 int opt_avalon8_voltage_level_offset = AVA8_DEFAULT_VOLTAGE_LEVEL_OFFSET;
 
@@ -311,6 +315,24 @@ char *set_avalon8_sigfreq(char *arg)
 	opt_avalon8_sigfreq_asic = val2;
 	opt_avalon8_sigfreq_vale = val3;
 	opt_avalon8_sigfreq_en = 1;
+
+	return NULL;
+}
+
+char *set_avalon8_rstfifo(char *arg)
+{
+	int val1, val2, ret;
+
+	ret = sscanf(arg, "%d-%d", &val1, &val2);
+	if (ret <= 1)
+		return "No value passed to avalon8-rstfifo";
+
+	if (val1 < 0 || val1 > AVA8_DEFAULT_MINER_CNT || val2 < 0 || val2 > AVA8_DEFAULT_ASIC_MAX)
+		return "Invalid value passed to avalon8-rstfiro";
+
+	opt_avalon8_rstfifo_miner = val1;
+	opt_avalon8_rstfifo_asic = val2;
+	opt_avalon8_rstfifo_en = 1;
 
 	return NULL;
 }
@@ -1576,6 +1598,14 @@ static int polling(struct cgpu_info *avalon8)
 			send_pkg.data[16] = opt_avalon8_sigfreq_vale & 0xff;
 		}
 
+		if (opt_avalon8_rstfifo_en) {
+			opt_avalon8_rstfifo_en = 0;
+
+			send_pkg.data[17] = 1;
+			send_pkg.data[18] = opt_avalon8_rstfifo_miner;
+			send_pkg.data[19] = opt_avalon8_rstfifo_asic;
+		}
+
 		avalon8_init_pkg(&send_pkg, AVA8_P_POLLING, 1, 1);
 		ret = avalon8_iic_xfer_pkg(avalon8, i, &send_pkg, &ar);
 		if (ret == AVA8_SEND_OK)
@@ -2742,6 +2772,24 @@ static char *avalon8_set_device(struct cgpu_info *avalon8, char *option, char *s
 		applog(LOG_NOTICE, "%s-%d: Update sigfreq to %d-%d-%d",
 		       avalon8->drv->name, avalon8->device_id,
 		       opt_avalon8_sigfreq_miner, opt_avalon8_sigfreq_asic, opt_avalon8_sigfreq_vale);
+
+		return NULL;
+	}
+
+	if (strcasecmp(option, "rstfifo") == 0) {
+		if (!setting || !*setting) {
+			sprintf(replybuf, "missing rstfifo value");
+			return replybuf;
+		}
+
+		if (set_avalon8_rstfifo(setting)) {
+			sprintf(replybuf, "invalid rstfifo value, valid range 1-26");
+			return replybuf;
+		}
+
+		applog(LOG_NOTICE, "%s-%d: Update rstfifo to %d-%d",
+		       avalon8->drv->name, avalon8->device_id,
+		       opt_avalon8_rstfifo_miner, opt_avalon8_rstfifo_asic);
 
 		return NULL;
 	}
