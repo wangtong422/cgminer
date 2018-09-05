@@ -2080,6 +2080,7 @@ static void avalon8_sswork_update(struct cgpu_info *avalon8)
 		info->work_restart = thr->work_restart;
 		thr->work_restart = false;
 	}
+	thr->work_update = false;
 
 	/* Step 1: MM protocol check */
 	pool = current_pool();
