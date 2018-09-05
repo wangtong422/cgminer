@@ -1929,11 +1929,14 @@ static void avalon8_sswork_update(struct cgpu_info *avalon8)
 	 * NOTE: We need mark work_restart to private information,
 	 * So that it cann't reset by hash_driver_work
 	 */
-	if (thr->work_restart)
-		info->work_restart = thr->work_restart;
 	applog(LOG_NOTICE, "%s-%d: New stratum: restart: %d, update: %d, clean: %d",
 	       avalon8->drv->name, avalon8->device_id,
 	       thr->work_restart, thr->work_update, thr->clean_jobs);
+	if (thr->work_restart) {
+		info->work_restart = thr->work_restart;
+		thr->work_restart = false;
+	}
+	thr->work_update = false;
 
 	/* Step 1: MM protocol check */
 	pool = current_pool();
