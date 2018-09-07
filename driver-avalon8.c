@@ -144,8 +144,8 @@ uint32_t cpm_table[] =
 
 struct avalon8_dev_description avalon8_dev_table[] = {
 	{
-		"851",
-		851,
+		"921",
+		921,
 		4,
 		26,
 		AVA8_MM851_VIN_ADC_RATIO,
