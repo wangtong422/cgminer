@@ -1886,15 +1886,20 @@ static void avalon9_sswork_update(struct cgpu_info *avalon9)
 	int coinbase_len_posthash, coinbase_len_prehash;
 
 	cgtime(&info->last_stratum);
+
+	applog(LOG_NOTICE, "%s-%d: New stratum: restart: %d, update: %d, clean: %d",
+	       avalon9->drv->name, avalon9->device_id,
+	       thr->work_restart, thr->work_update, thr->clean_jobs);
 	/*
 	 * NOTE: We need mark work_restart to private information,
 	 * So that it cann't reset by hash_driver_work
 	 */
-	if (thr->work_restart)
+	if (thr->work_restart) {
 		info->work_restart = thr->work_restart;
-	applog(LOG_NOTICE, "%s-%d: New stratum: restart: %d, update: %d, clean: %d",
-	       avalon9->drv->name, avalon9->device_id,
-	       thr->work_restart, thr->work_update, thr->clean_jobs);
+		thr->work_restart = false;
+	}
+
+	thr->work_update = false;
 
 	/* Step 1: MM protocol check */
 	pool = current_pool();
