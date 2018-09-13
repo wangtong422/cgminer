@@ -1542,7 +1542,7 @@ static int polling(struct cgpu_info *avalon9)
 	return 0;
 }
 
-static void copy_pool_stratum(struct pool *pool_stratum, struct pool *pool)
+static int copy_pool_stratum(struct pool *pool_stratum, struct pool *pool)
 {
 	int i;
 	int merkles = pool->merkles, job_id_len;
@@ -1550,7 +1550,7 @@ static void copy_pool_stratum(struct pool *pool_stratum, struct pool *pool)
 	unsigned short crc;
 
 	if (!pool->swork.job_id)
-		return;
+		return 1;
 
 	if (pool_stratum->swork.job_id) {
 		job_id_len = strlen(pool->swork.job_id);
@@ -1558,7 +1558,7 @@ static void copy_pool_stratum(struct pool *pool_stratum, struct pool *pool)
 		job_id_len = strlen(pool_stratum->swork.job_id);
 
 		if (crc16((unsigned char *)pool_stratum->swork.job_id, job_id_len) == crc)
-			return;
+			return 1;
 	}
 
 	cg_wlock(&pool_stratum->data_lock);
@@ -1591,6 +1591,8 @@ static void copy_pool_stratum(struct pool *pool_stratum, struct pool *pool)
 	memcpy(pool_stratum->ntime, pool->ntime, sizeof(pool_stratum->ntime));
 	memcpy(pool_stratum->header_bin, pool->header_bin, sizeof(pool_stratum->header_bin));
 	cg_wunlock(&pool_stratum->data_lock);
+
+	return 0;
 }
 
 static void avalon9_init_setting(struct cgpu_info *avalon9, int addr)
@@ -1927,17 +1929,22 @@ static void avalon9_sswork_update(struct cgpu_info *avalon9)
 
 	/* Step 2: Send out stratum pkgs */
 	cg_rlock(&pool->data_lock);
-	info->pool_no = pool->pool_no;
+
 	copy_pool_stratum(&info->pool2, &info->pool1);
 	copy_pool_stratum(&info->pool1, &info->pool0);
-	copy_pool_stratum(&info->pool0, pool);
+	if (copy_pool_stratum(&info->pool0, pool)) {
+		cg_runlock(&pool->data_lock);
+		cg_wunlock(&info->update_lock);
+	} else {
+		info->pool_no = pool->pool_no;
 
-	avalon9_stratum_pkgs(avalon9, pool);
-	cg_runlock(&pool->data_lock);
+		avalon9_stratum_pkgs(avalon9, pool);
+		cg_runlock(&pool->data_lock);
 
-	/* Step 3: Send out finish pkg */
-	avalon9_stratum_finish(avalon9);
-	cg_wunlock(&info->update_lock);
+		/* Step 3: Send out finish pkg */
+		avalon9_stratum_finish(avalon9);
+		cg_wunlock(&info->update_lock);
+	}
 }
 
 static int64_t avalon9_scanhash(struct thr_info *thr)
