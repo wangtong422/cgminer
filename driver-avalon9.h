@@ -106,7 +106,7 @@
 
 #define AVA9_AUC_VER_LEN		12 /* Version length: 12 (AUC-YYYYMMDD) */
 #define AVA9_AUC_SPEED			400000
-#define AVA9_AUC_XDELAY 		19200 /* 4800 = 1ms in AUC (11U14)  */
+#define AVA9_AUC_XDELAY 		24000 /* 4800 = 1ms in AUC (11U14)  */
 #define AVA9_AUC_P_SIZE			64
 
 #define AVA9_CONNECTER_AUC		1
