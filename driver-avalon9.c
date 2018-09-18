@@ -154,7 +154,7 @@ struct avalon9_dev_description avalon9_dev_table[] = {
 		26,
 		AVA9_MM921_VIN_ADC_RATIO,
 		AVA9_MM921_VOUT_ADC_RATIO,
-		-2,
+		5,
 		{
 			AVA9_DEFAULT_FREQUENCY_0M,
 			AVA9_DEFAULT_FREQUENCY_0M,
