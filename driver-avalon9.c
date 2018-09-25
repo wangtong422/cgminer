@@ -694,6 +694,13 @@ static int decode_pkg(struct cgpu_info *avalon9, struct avalon9_ret *ar, int mod
 			}
 		}
 		break;
+	case AVA9_P_STATUS_PVT_RO:
+		applog(LOG_DEBUG, "%s-%d-%d: AVA9_P_STATUS_PVT_RO", avalon9->drv->name, avalon9->device_id, modular_id);
+		if (ar->data[7]) {
+			memcpy(&tmp, ar->data, 4);
+			info->pvt_ro[modular_id][ar->data[4]][ar->data[5]][ar->data[6]] = be32toh(tmp);
+		}
+		break;
 	case AVA9_P_STATUS_FAC:
 		applog(LOG_DEBUG, "%s-%d-%d: AVA9_P_STATUS_FAC", avalon9->drv->name, avalon9->device_id, modular_id);
 		info->factory_info[0] = ar->data[0];
@@ -2305,6 +2312,19 @@ static struct api_data *avalon9_api_stats(struct cgpu_info *avalon9)
 
 				statbuf[strlen(statbuf) - 1] = ']';
 				statbuf[strlen(statbuf)] = '\0';
+			}
+
+			for (m = 0; m < AVA9_DEFAULT_RO_CHANNEL_CNT; m++) {
+				for (j = 0; j < info->miner_count[i]; j++) {
+					sprintf(buf, " PVT_P%d_%02d[", j, m);
+					strcat(statbuf, buf);
+					for (k = 0; k < info->asic_count[i]; k++) {
+						sprintf(buf, "%08x ", info->pvt_ro[i][j][k][m]);
+						strcat(statbuf, buf);
+					}
+					statbuf[strlen(statbuf) - 1] = ']';
+					statbuf[strlen(statbuf)] = '\0';
+				}
 			}
 
 			for (j = 0; j < info->miner_count[i]; j++) {
