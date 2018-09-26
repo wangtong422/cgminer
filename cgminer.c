@@ -851,6 +851,11 @@ static char *set_int_0_to_1(const char *arg, int *i)
 	return set_int_range(arg, i, 0, 1);
 }
 
+static char *set_int_0_to_3(const char *arg, int *i)
+{
+        return set_int_range(arg, i, 0, 3);
+}
+
 static char *set_int_0_to_6(const char *arg, int *i)
 {
 	return set_int_range(arg, i, 0, 6);
@@ -1582,8 +1587,17 @@ static struct opt_table opt_config_table[] = {
 		     set_int_0_to_7, opt_show_intval, &opt_avalon8_spdlow,
 		     "Set Avalon8 spdlow, range 0-7."),
 	OPT_WITH_ARG("--avalon8-spdhigh",
-		     set_int_0_to_7, opt_show_intval, &opt_avalon8_spdhigh,
-		     "Set Avalon8 spdhigh, range 0-7."),
+		     set_int_0_to_3, opt_show_intval, &opt_avalon8_spdhigh,
+		     "Set Avalon8 spdhigh, range 0-3."),
+	OPT_WITH_ARG("--avalon8-pid-p",
+		     set_int_0_to_9999, opt_show_intval, &opt_avalon8_pid_p,
+		     "Set Avalon8 pid-p, range 0-9999."),
+	OPT_WITH_ARG("--avalon8-pid-i",
+		     set_int_0_to_9999, opt_show_intval, &opt_avalon8_pid_i,
+		     "Set Avalon8 pid-i, range 0-9999."),
+	OPT_WITH_ARG("--avalon8-pid-d",
+		     set_int_0_to_9999, opt_show_intval, &opt_avalon8_pid_d,
+		     "Set Avalon8 pid-d, range 0-9999."),
 #endif
 #ifdef USE_AVALON_MINER
 	OPT_WITH_CBARG("--avalonm-voltage",
