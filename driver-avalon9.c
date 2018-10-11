@@ -1429,7 +1429,6 @@ static void detect_modules(struct cgpu_info *avalon9)
 
 		info->volt_adjusted[i] = 0;
 		info->freq_adjusted[i] = 0;
-		info->volt_adjusted_cnt[i] = 0;
 
 		info->led_indicator[i] = 0;
 		info->cutoff[i] = 0;
@@ -2073,54 +2072,35 @@ static int64_t avalon9_scanhash(struct thr_info *thr)
 		} else {
 			adjust_volt_setting = 0;
 			if (!info->volt_adjusted[i] && do_adjust_volt_freq) {
-				if (info->volt_adjusted_cnt[i] > (AVA9_ADJUST_VOLT_CNT - 2)) {
-					pass = 0;
-					fail = 0;
-					for (j = 0; j < info->miner_count[i]; j++) {
-						for (k = 0; k < info->asic_count[i]; k++) {
-							pass += info->get_asic[i][j][k][0];
-							fail += info->get_asic[i][j][k][1];
-						}
-					}
-
-					dh = fail ? (fail / (pass + fail)) * 100 : 0;
-					wu = info->diff1[i] / tdiff(&current, &(info->elapsed[i])) * 60.0;
-
-					if (wu > AVA9_DEFAULT_WU_MAX) {
-						if (dh < AVA9_DEFAULT_DH_MIN)
-							volt_level_inc = -2 * AVA9_ADJUST_VOLT_STEP;
-						else if (dh < AVA9_DEFAULT_DH_MAX)
-							volt_level_inc = -1 * AVA9_ADJUST_VOLT_STEP;
-						else
-							volt_level_inc = 0;
-					} else if (wu < AVA9_DEFAULT_WU_MIN) {
-						if (dh > AVA9_DEFAULT_DH_MAX)
-							volt_level_inc = 4 * AVA9_ADJUST_VOLT_STEP;
-						else if (dh > AVA9_DEFAULT_DH_MIN)
-							volt_level_inc = 3 * AVA9_ADJUST_VOLT_STEP;
-						else
-							volt_level_inc = 2 * AVA9_ADJUST_VOLT_STEP;
-					} else if (wu < AVA9_DEFAULT_WU) {
-						volt_level_inc = AVA9_ADJUST_VOLT_STEP;
-					} else {
-						volt_level_inc = 0;
-					}
-
-					if (volt_level_inc) {
-						for (j = 0; j < info->miner_count[i]; j++) {
-							volt_level_vlaue = info->set_voltage_level[i][j] + volt_level_inc;
-							if ((volt_level_vlaue >= AVA9_DEFAULT_VOLTAGE_LEVEL_MIN)
-										&& (volt_level_vlaue <= AVA9_DEFAULT_VOLTAGE_LEVEL_MAX)) {
-								info->set_voltage_level[i][j] = volt_level_vlaue;
-								adjust_volt_setting = 1;
-							}
-						}
+				pass = 0;
+				fail = 0;
+				for (j = 0; j < info->miner_count[i]; j++) {
+					for (k = 0; k < info->asic_count[i]; k++) {
+						pass += info->get_asic[i][j][k][0];
+						fail += info->get_asic[i][j][k][1];
 					}
 				}
 
-				info->volt_adjusted_cnt[i]++;
-				if (info->volt_adjusted_cnt[i] > AVA9_ADJUST_VOLT_CNT)
-					info->volt_adjusted[i] = 1;
+				dh = fail ? (fail / (pass + fail)) * 100 : 0;
+				wu = info->diff1[i] / tdiff(&current, &(info->elapsed[i])) * 60.0;
+
+				if (wu < AVA9_DEFAULT_WU) {
+					if (dh > AVA9_DEFAULT_DH_MAX)
+						volt_level_inc = 3 * AVA9_ADJUST_VOLT_STEP;
+					else if (dh > AVA9_DEFAULT_DH_MIN)
+						volt_level_inc = 2 * AVA9_ADJUST_VOLT_STEP;
+					else
+						volt_level_inc = 0;
+
+					for (j = 0; j < info->miner_count[i]; j++) {
+						volt_level_vlaue = info->set_voltage_level[i][j] + volt_level_inc;
+						if (volt_level_vlaue <= AVA9_DEFAULT_VOLTAGE_LEVEL_MAX) {
+							info->set_voltage_level[i][j] = volt_level_vlaue;
+							adjust_volt_setting = 1;
+							info->volt_adjusted[i] = 1;
+						}
+					}
+				}
 			}
 
 			adjust_freq_setting = 0;
