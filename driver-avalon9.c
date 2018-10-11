@@ -1305,7 +1305,6 @@ static bool avalon9_prepare(struct thr_info *thr)
 	cgtime(&(info->last_fan_adj));
 	cgtime(&info->last_stratum);
 	cgtime(&info->last_detect);
-	cgtime(&info->last_volt_freq_adj);
 
 	cglock_init(&info->update_lock);
 	cglock_init(&info->pool0.data_lock);
@@ -1426,9 +1425,6 @@ static void detect_modules(struct cgpu_info *avalon9)
 
 		info->freq_mode[i] = AVA9_FREQ_INIT_MODE;
 		memset(info->get_pll[i], 0, sizeof(uint32_t) * info->miner_count[i] * AVA9_DEFAULT_PLL_CNT);
-
-		info->volt_adjusted[i] = 0;
-		info->freq_adjusted[i] = 0;
 
 		info->led_indicator[i] = 0;
 		info->cutoff[i] = 0;
@@ -1966,7 +1962,6 @@ static void avalon9_sswork_update(struct cgpu_info *avalon9)
 	}
 }
 
-static float avalon9_hash_cal(struct cgpu_info *avalon9, int modular_id);
 static int64_t avalon9_scanhash(struct thr_info *thr)
 {
 	struct cgpu_info *avalon9 = thr->cgpu;
@@ -1976,13 +1971,6 @@ static int64_t avalon9_scanhash(struct thr_info *thr)
 	int temp_max;
 	int64_t ret;
 	bool update_settings = false;
-	int do_adjust_volt_freq = 0;
-	int adjust_volt_setting = 0;
-	int adjust_freq_setting = 0;
-	int volt_level_vlaue = 0;;
-	int volt_level_inc = 0;
-	double pass, fail, dh;
-	double wu, ghsmm;
 
 	if ((info->connecter == AVA9_CONNECTER_AUC) &&
 		(unlikely(avalon9->usbinfo.nodev))) {
@@ -2001,11 +1989,6 @@ static int64_t avalon9_scanhash(struct thr_info *thr)
 		}
 		info->mm_count = 0;
 		return 0;
-	}
-
-	if (tdiff(&current, &info->last_volt_freq_adj) >= 1200.0) {
-		cgtime(&info->last_volt_freq_adj);
-		do_adjust_volt_freq = true;
 	}
 
 	/* Step 2: Try to detect new modules */
@@ -2068,72 +2051,6 @@ static int64_t avalon9_scanhash(struct thr_info *thr)
 				avalon9_set_ss_param(avalon9, i);
 
 			avalon9_set_finish(avalon9, i);
-			cg_wunlock(&info->update_lock);
-		} else {
-			adjust_volt_setting = 0;
-			if (!info->volt_adjusted[i] && do_adjust_volt_freq) {
-				pass = 0;
-				fail = 0;
-				for (j = 0; j < info->miner_count[i]; j++) {
-					for (k = 0; k < info->asic_count[i]; k++) {
-						pass += info->get_asic[i][j][k][0];
-						fail += info->get_asic[i][j][k][1];
-					}
-				}
-
-				dh = fail ? (fail / (pass + fail)) * 100 : 0;
-				wu = info->diff1[i] / tdiff(&current, &(info->elapsed[i])) * 60.0;
-
-				if (wu < AVA9_DEFAULT_WU) {
-					if (dh > AVA9_DEFAULT_DH_MAX)
-						volt_level_inc = 3 * AVA9_ADJUST_VOLT_STEP;
-					else if (dh > AVA9_DEFAULT_DH_MIN)
-						volt_level_inc = 2 * AVA9_ADJUST_VOLT_STEP;
-					else
-						volt_level_inc = 0;
-
-					for (j = 0; j < info->miner_count[i]; j++) {
-						volt_level_vlaue = info->set_voltage_level[i][j] + volt_level_inc;
-						if (volt_level_vlaue <= AVA9_DEFAULT_VOLTAGE_LEVEL_MAX) {
-							info->set_voltage_level[i][j] = volt_level_vlaue;
-							adjust_volt_setting = 1;
-							info->volt_adjusted[i] = 1;
-						}
-					}
-				}
-			}
-
-			adjust_freq_setting = 0;
-			if (!info->freq_adjusted[i] && do_adjust_volt_freq) {
-				wu = info->diff1[i] / tdiff(&current, &(info->elapsed[i])) * 60.0;
-				ghsmm = avalon9_hash_cal(avalon9, i) / 1000.0;
-
-				if ((wu < AVA9_DEFAULT_WU) && (ghsmm < AVA9_DEFAULT_GHSMM_MIN)) {
-					for (j = 0; j < info->miner_count[i]; j++) {
-						if ((info->set_frequency[i][j][AVA9_DEFAULT_PLL_CNT - 1] + AVA9_ADJUST_FREQ_STEP) > AVA9_ADJUST_FREQ_MAX)
-							continue;
-
-						for (k = 0; k < AVA9_DEFAULT_PLL_CNT; k++) {
-							if (info->set_frequency[i][j][k])
-								info->set_frequency[i][j][k] += AVA9_ADJUST_FREQ_STEP;
-						}
-						adjust_freq_setting = 1;
-						info->freq_adjusted[i] = 1;
-					}
-				}
-			}
-
-			cg_wlock(&info->update_lock);
-			if (adjust_volt_setting) {
-				avalon9_set_voltage_level(avalon9, i, info->set_voltage_level[i]);
-				for (j = 0; j < info->miner_count[i]; j++)
-					avalon9_set_freq(avalon9, i, j, info->set_frequency[i][j]);
-			} else {
-				if (adjust_freq_setting) {
-					for (j = 0; j < info->miner_count[i]; j++)
-						avalon9_set_freq(avalon9, i, j, info->set_frequency[i][j]);
-				}
-			}
 			cg_wunlock(&info->update_lock);
 		}
 	}

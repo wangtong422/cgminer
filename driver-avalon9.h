@@ -195,14 +195,6 @@
 #define AVA9_MM921_VIN_ADC_RATIO	(3.3 / 4095.0 * 25.62 / 5.62 * 1000.0 * 100.0)
 #define AVA9_MM921_VOUT_ADC_RATIO	(3.3 / 4095.0 * 72.3 / 20.0 * 10000.0 * 100.0)
 
-#define AVA9_DEFAULT_WU			279400
-#define AVA9_DEFAULT_DH_MIN		3.7
-#define AVA9_DEFAULT_DH_MAX		5.0
-#define AVA9_DEFAULT_GHSMM_MIN		21000.0
-#define AVA9_ADJUST_VOLT_STEP		1
-#define AVA9_ADJUST_FREQ_STEP		25
-#define AVA9_ADJUST_FREQ_MAX		825
-
 struct avalon9_pkg {
 	uint8_t head[2];
 	uint8_t type;
@@ -228,7 +220,6 @@ struct avalon9_info {
 	struct timeval last_fan_adj;
 	struct timeval last_stratum;
 	struct timeval last_detect;
-	struct timeval last_volt_freq_adj;
 
 	cglock_t update_lock;
 
@@ -293,9 +284,6 @@ struct avalon9_info {
 	int set_voltage_level[AVA9_DEFAULT_MODULARS][AVA9_DEFAULT_MINER_CNT];
 	uint32_t set_frequency[AVA9_DEFAULT_MODULARS][AVA9_DEFAULT_MINER_CNT][AVA9_DEFAULT_PLL_CNT];
 	uint32_t get_frequency[AVA9_DEFAULT_MODULARS][AVA9_DEFAULT_MINER_CNT][AVA9_DEFAULT_PLL_CNT];
-
-	uint8_t volt_adjusted[AVA9_DEFAULT_MODULARS];
-	uint8_t freq_adjusted[AVA9_DEFAULT_MODULARS];
 
 	uint16_t get_vin[AVA9_DEFAULT_MODULARS][AVA9_DEFAULT_MINER_CNT];
 	uint32_t get_voltage[AVA9_DEFAULT_MODULARS][AVA9_DEFAULT_MINER_CNT];
