@@ -200,10 +200,7 @@ static uint32_t encode_voltage(int volt_level)
 	else if (volt_level < AVA8_DEFAULT_VOLTAGE_LEVEL_MIN)
 	      volt_level = AVA8_DEFAULT_VOLTAGE_LEVEL_MIN;
 
-	if (volt_level < 0)
-		return 0x8080 | (-volt_level);
-
-	return 0x8000 | volt_level;
+	return volt_level;
 }
 
 static uint32_t decode_voltage(struct avalon8_info *info, int modular_id, uint32_t volt)
