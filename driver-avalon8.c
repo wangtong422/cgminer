@@ -2351,6 +2351,22 @@ static struct api_data *avalon8_api_stats(struct cgpu_info *avalon8)
 					statbuf[strlen(statbuf)] = '\0';
 				}
 			}
+
+			for (j = 0; j < info->miner_count[i]; j++) {
+				for (k = 0; k < AVA8_DEFAULT_CORE_COUNT; k++) {
+					a = info->get_asic[i][j][k][0];
+					b = info->get_asic[i][j][k][1];
+					dh = b ? (b / (a + b)) * 100: 0;
+
+					sprintf(buf, " SPDLOG%d_%03d[", j, k);
+					strcat(statbuf, buf);
+					sprintf(buf, "%-5d %-5d %-7.3f%%", info->get_asic[i][j][k][0], info->get_asic[i][j][k][1], dh);
+					strcat(statbuf, buf);
+
+					statbuf[strlen(statbuf) - 1] = ']';
+					statbuf[strlen(statbuf)] = '\0';
+				}
+			}
 		}
 
 		sprintf(buf, " FM[%d]", info->freq_mode[i]);
