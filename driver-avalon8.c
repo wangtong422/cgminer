@@ -748,6 +748,23 @@ static int decode_pkg(struct cgpu_info *avalon8, struct avalon8_ret *ar, int mod
 			}
 		}
 		break;
+	case AVA8_P_STATUS_ASIC:
+		if (!info->asic_count[modular_id])
+			break;
+
+		applog(LOG_DEBUG, "%s-%d-%d: AVA8_P_STATUS_ASIC %d-%d",
+				avalon8->drv->name, avalon8->device_id, modular_id, 0, ar->idx);
+
+		if (!ar->cnt) {
+			for (i = 0; i < 4; i++) {
+				memcpy(&tmp, ar->data + i * 8, 4);
+				info->get_asic[modular_id][0][ar->idx + i][0] = be32toh(tmp);
+
+				memcpy(&tmp, ar->data + i * 8 + 4, 4);
+				info->get_asic[modular_id][0][ar->idx + i][1] = be32toh(tmp);
+			}
+		}
+		break;
 	case AVA8_P_STATUS_FAC:
 		applog(LOG_DEBUG, "%s-%d-%d: AVA8_P_STATUS_FAC", avalon8->drv->name, avalon8->device_id, modular_id);
 		info->factory_info[0] = ar->data[0];
