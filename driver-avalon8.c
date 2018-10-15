@@ -2206,6 +2206,18 @@ static struct api_data *avalon8_api_stats(struct cgpu_info *avalon8)
 		sprintf(buf, " HW[%"PRIu64"]", info->hw_works[i]);
 		strcat(statbuf, buf);
 
+		a = 0;
+		b = 0;
+		for (j = 0; j < info->miner_count[i]; j++) {
+			for (k = 0; k < AVA8_DEFAULT_CORE_COUNT; k++) {
+				a += info->get_asic[i][j][k][0];
+				b += info->get_asic[i][j][k][1];
+			}
+		}
+		dh = b ? (b / (a + b)) * 100: 0;
+		sprintf(buf, " DH[%.3f%%]", dh);
+		strcat(statbuf, buf);
+
 		sprintf(buf, " Temp[%d]", info->temp_mm[i]);
 		strcat(statbuf, buf);
 
