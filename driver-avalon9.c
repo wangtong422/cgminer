@@ -424,6 +424,17 @@ static inline int get_temp_max(struct avalon9_info *info, int addr)
  * e(k) = t(k) - t[target];
  * u(k) = u(k-1) + delta_u;
  *
+ * when temp_target = 95
+ * Tenv  Tmm   Fan(PWM)
+ * -30   -13   26
+ * -20    -5   29
+ * -10     1   33
+ *   0     8   39
+ *  10    15   54
+ *  20    24   69
+ *  30    32   93
+ *
+ * Fan = 0.0327 * Tmm * Tmm + 0.84 * Tmm + 31
  */
 static inline uint32_t adjust_fan(struct avalon9_info *info, int id)
 {
@@ -441,12 +452,12 @@ static inline uint32_t adjust_fan(struct avalon9_info *info, int id)
 
 	if (t > AVA9_DEFAULT_PID_TEMP_MAX) {
 		info->pid_u[id] = opt_avalon9_fan_max;
-	} else if (t < AVA9_DEFAULT_PID_TEMP_MIN) {
+	} else if (t < info->temp_target[id] - AVA9_DEFAULT_PID_TEMP_MIN_DIFF && info->pid_0[id] == 0) {
 		info->pid_u[id] = opt_avalon9_fan_min;
 	} else if (!info->pid_0[id]) {
-			/* first, init u as t */
+			/* first, init u use temp_mm */
 			info->pid_0[id] = 1;
-			info->pid_u[id] = t;
+			info->pid_u[id] = 0.0327 * info->temp_mm[id] * info->temp_mm[id] + 0.84 * info->temp_mm[id] + 31;
 	} else {
 		delta_p = info->pid_p[id] * (info->pid_e[id][0] - info->pid_e[id][1]);
 		delta_i = info->pid_i[id] * info->pid_e[id][0];
