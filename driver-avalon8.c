@@ -498,12 +498,12 @@ static inline uint32_t adjust_fan(struct avalon8_info *info, int id)
 
 	if (t > AVA8_DEFAULT_PID_TEMP_MAX) {
 		info->pid_u[id] = opt_avalon8_fan_max;
-	} else if (t < AVA8_DEFAULT_PID_TEMP_MIN) {
+	} else if (t < info->temp_target[id] - AVA9_DEFAULT_PID_TEMP_MIN_DIFF && info->pid_0[id] == 0) {
 		info->pid_u[id] = opt_avalon8_fan_min;
 	} else if (!info->pid_0[id]) {
 			/* first, init u as t */
 			info->pid_0[id] = 1;
-			info->pid_u[id] = t;
+			info->pid_u[id] = 100 - info->temp_target[id];
 	} else {
 		delta_p = info->pid_p[id] * (info->pid_e[id][0] - info->pid_e[id][1]);
 		delta_i = info->pid_i[id] * info->pid_e[id][0];
