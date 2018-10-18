@@ -524,8 +524,9 @@ static int decode_pkg(struct cgpu_info *avalon8, struct avalon8_ret *ar, int mod
 	uint32_t i;
 	int64_t last_diff1;
 	uint16_t vin;
+	uint16_t power_info;
 
-	uint32_t asic_id,miner_id;
+	uint32_t asic_id, miner_id;
 
 	if (likely(avalon8->thr))
 		thr = avalon8->thr[0];
@@ -787,6 +788,13 @@ static int decode_pkg(struct cgpu_info *avalon8, struct avalon8_ret *ar, int mod
 					info->get_frequency[modular_id][miner_id][asic_id][i] = be16toh(freq);
 				}
 			}
+		}
+		break;
+	case AVA8_P_STATUS_POWER:
+		applog(LOG_DEBUG, "%s-%d-%d: AVA8_P_STATUS_POWER", avalon8->drv->name, avalon8->device_id, modular_id);
+		for (i = 0; i < AVA8_DEFAULT_POWER_INFO_CNT; i++) {
+			memcpy(&power_info, ar->data + i * 2, 2);
+			info->power_info[i] = be16toh(power_info);
 		}
 		break;
 	case AVA8_P_STATUS_FAC:
@@ -2314,6 +2322,14 @@ static struct api_data *avalon8_api_stats(struct cgpu_info *avalon8)
 		strcat(statbuf, buf);
 		for (j = 0; j < info->miner_count[i]; j++) {
 			sprintf(buf, "%d ", info->get_voltage[i][j]);
+			strcat(statbuf, buf);
+		}
+		statbuf[strlen(statbuf) - 1] = ']';
+
+		sprintf(buf, " PS[");
+		strcat(statbuf, buf);
+		for (j = 0; j < AVA8_DEFAULT_POWER_INFO_CNT; j++) {
+			sprintf(buf, "%d ", info->power_info[j]);
 			strcat(statbuf, buf);
 		}
 		statbuf[strlen(statbuf) - 1] = ']';
