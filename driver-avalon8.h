@@ -309,7 +309,6 @@ struct avalon8_info {
 
 	int set_asic_otp[AVA8_DEFAULT_MODULARS][AVA8_DEFAULT_MINER_CNT];
 
-	uint16_t get_vin[AVA8_DEFAULT_MODULARS][AVA8_DEFAULT_MINER_CNT];
 	uint32_t get_voltage[AVA8_DEFAULT_MODULARS][AVA8_DEFAULT_MINER_CNT];
 	uint32_t get_pll[AVA8_DEFAULT_MODULARS][AVA8_DEFAULT_MINER_CNT][AVA8_DEFAULT_PLL_CNT];
 
@@ -328,8 +327,6 @@ struct avalon8_info {
 	uint32_t error_crc[AVA8_DEFAULT_MODULARS][AVA8_DEFAULT_MINER_CNT];
 	uint8_t error_polling_cnt[AVA8_DEFAULT_MODULARS];
 
-	uint8_t power_good[AVA8_DEFAULT_MODULARS];
-	char pmu_version[AVA8_DEFAULT_MODULARS][AVA8_DEFAULT_PMU_CNT][5];
 	uint64_t diff1[AVA8_DEFAULT_MODULARS];
 
 	uint16_t vin_adc_ratio[AVA8_DEFAULT_MODULARS];

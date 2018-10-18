@@ -650,20 +650,6 @@ static int decode_pkg(struct cgpu_info *avalon8, struct avalon8_ret *ar, int mod
 		memcpy(&tmp, ar->data + 24, 4);
 		info->error_crc[modular_id][ar->idx] += be32toh(tmp);
 		break;
-	case AVA8_P_STATUS_PMU:
-		/* TODO: decode ntc led from PMU */
-		applog(LOG_DEBUG, "%s-%d-%d: AVA8_P_STATUS_PMU", avalon8->drv->name, avalon8->device_id, modular_id);
-		info->power_good[modular_id] = ar->data[16];
-		for (i = 0; i < AVA8_DEFAULT_PMU_CNT; i++) {
-			memcpy(&info->pmu_version[modular_id][i], ar->data + 24 + (i * 4), 4);
-			info->pmu_version[modular_id][i][4] = '\0';
-		}
-
-		for (i = 0; i < info->miner_count[modular_id]; i++) {
-			memcpy(&vin, ar->data + 8 + i * 2, 2);
-			info->get_vin[modular_id][i] = decode_vin(info, modular_id, be16toh(vin));
-		}
-		break;
 	case AVA8_P_STATUS_OTP:
 		if (opt_avalon8_cycle_hit_flag)
 			break;
@@ -1516,7 +1502,6 @@ static void detect_modules(struct cgpu_info *avalon8)
 			else
 				info->set_voltage_level[i][j] = opt_avalon8_voltage_level;
 			info->get_voltage[i][j] = 0;
-			info->get_vin[i][j] = 0;
 
 			for (k = 0; k < info->asic_count[i]; k++)
 				info->temp[i][j][k] = -273;
@@ -1559,8 +1544,6 @@ static void detect_modules(struct cgpu_info *avalon8)
 		}
 		info->error_code[i][j] = 0;
 		info->error_polling_cnt[i] = 0;
-		info->power_good[i] = 0;
-		memset(info->pmu_version[i], 0, sizeof(char) * 5 * AVA8_DEFAULT_PMU_CNT);
 		info->diff1[i] = 0;
 
 		applog(LOG_NOTICE, "%s-%d: New module detected! ID[%d-%x]",
@@ -2327,14 +2310,6 @@ static struct api_data *avalon8_api_stats(struct cgpu_info *avalon8)
 		sprintf(buf, " FanR[%d%%]", info->fan_pct[i]);
 		strcat(statbuf, buf);
 
-		sprintf(buf, " Vi[");
-		strcat(statbuf, buf);
-		for (j = 0; j < info->miner_count[i]; j++) {
-			sprintf(buf, "%d ", info->get_vin[i][j]);
-			strcat(statbuf, buf);
-		}
-		statbuf[strlen(statbuf) - 1] = ']';
-
 		sprintf(buf, " Vo[");
 		strcat(statbuf, buf);
 		for (j = 0; j < info->miner_count[i]; j++) {
@@ -2359,9 +2334,6 @@ static struct api_data *avalon8_api_stats(struct cgpu_info *avalon8)
 		sprintf(buf, " GHSmm[%.2f] WU[%.2f] Freq[%.2f]", (float)mhsmm / 1000,
 					info->diff1[i] / tdiff(&current, &(info->elapsed[i])) * 60.0,
 					(float)mhsmm / (info->asic_count[i] * info->miner_count[i] * 172));
-		strcat(statbuf, buf);
-
-		sprintf(buf, " PG[%d]", info->power_good[i]);
 		strcat(statbuf, buf);
 
 		sprintf(buf, " Led[%d]", info->led_indicator[i]);
@@ -2408,13 +2380,6 @@ static struct api_data *avalon8_api_stats(struct cgpu_info *avalon8)
 
 				statbuf[strlen(statbuf) - 1] = ']';
 			}
-
-			strcat(statbuf, " PMUV[");
-			for (j = 0; j < AVA8_DEFAULT_PMU_CNT; j++) {
-				sprintf(buf, "%s ", info->pmu_version[i][j]);
-				strcat(statbuf, buf);
-			}
-			statbuf[strlen(statbuf) - 1] = ']';
 
 			if (!strncmp((char *)&(info->mm_version[i]), "851", 3)) {
 				for (j = 0; j < info->miner_count[i]; j++) {
