@@ -525,6 +525,7 @@ static int decode_pkg(struct cgpu_info *avalon8, struct avalon8_ret *ar, int mod
 	int64_t last_diff1;
 	uint16_t vin;
 	uint16_t power_info;
+	uint16_t get_vcore;
 
 	uint32_t asic_id, miner_id;
 
@@ -701,10 +702,8 @@ static int decode_pkg(struct cgpu_info *avalon8, struct avalon8_ret *ar, int mod
 		break;
 	case AVA8_P_STATUS_VOLT:
 		applog(LOG_DEBUG, "%s-%d-%d: AVA8_P_STATUS_VOLT", avalon8->drv->name, avalon8->device_id, modular_id);
-		for (i = 0; i < info->miner_count[modular_id]; i++) {
-			memcpy(&tmp, ar->data + i * 4, 4);
-			info->get_voltage[modular_id][i] = decode_voltage(info, modular_id, be32toh(tmp));
-		}
+		memcpy(&get_vcore, ar->data, 2);
+		info->get_voltage[modular_id][0] = be16toh(get_vcore);
 		break;
 	case AVA8_P_STATUS_PLL:
 		applog(LOG_DEBUG, "%s-%d-%d: AVA8_P_STATUS_PLL", avalon8->drv->name, avalon8->device_id, modular_id);
@@ -1509,7 +1508,6 @@ static void detect_modules(struct cgpu_info *avalon8)
 				info->set_voltage_level[i][j] = avalon8_dev_table[dev_index].set_voltage_level;
 			else
 				info->set_voltage_level[i][j] = opt_avalon8_voltage_level;
-			info->get_voltage[i][j] = 0;
 
 			for (k = 0; k < info->asic_count[i]; k++)
 				info->temp[i][j][k] = -273;
@@ -1522,6 +1520,7 @@ static void detect_modules(struct cgpu_info *avalon8)
 			else
 				info->set_asic_otp[i][j] = opt_avalon8_asic_otp;
 		}
+		info->get_voltage[i][0] = 0;
 
 		info->freq_mode[i] = AVA8_FREQ_INIT_MODE;
 		memset(info->get_pll[i], 0, sizeof(uint32_t) * info->miner_count[i] * AVA8_DEFAULT_PLL_CNT);
@@ -2318,13 +2317,8 @@ static struct api_data *avalon8_api_stats(struct cgpu_info *avalon8)
 		sprintf(buf, " FanR[%d%%]", info->fan_pct[i]);
 		strcat(statbuf, buf);
 
-		sprintf(buf, " Vo[");
+		sprintf(buf, " Vo[%d]", info->get_voltage[i][0]);
 		strcat(statbuf, buf);
-		for (j = 0; j < info->miner_count[i]; j++) {
-			sprintf(buf, "%d ", info->get_voltage[i][j]);
-			strcat(statbuf, buf);
-		}
-		statbuf[strlen(statbuf) - 1] = ']';
 
 		sprintf(buf, " PS[");
 		strcat(statbuf, buf);
