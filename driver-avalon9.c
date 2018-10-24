@@ -711,9 +711,13 @@ static int decode_pkg(struct cgpu_info *avalon9, struct avalon9_ret *ar, int mod
 		break;
 	case AVA9_P_STATUS_POWER:
 		applog(LOG_DEBUG, "%s-%d-%d: AVA9_P_STATUS_POWER", avalon9->drv->name, avalon9->device_id, modular_id);
-		for (i = 0; i < AVA9_DEFAULT_POWER_INFO_CNT; i++) {
-			memcpy(&power_info, ar->data + i * 2, 2);
-			info->power_info[i] = be16toh(power_info);
+
+		if (ar->data[17]) {
+			for (i = 0; i < AVA9_DEFAULT_POWER_INFO_CNT - 1; i++) {
+				memcpy(&power_info, ar->data + i * 2, 2);
+				info->power_info[i] = be16toh(power_info);
+			}
+			info->power_info[AVA9_DEFAULT_POWER_INFO_CNT - 1] = ar->data[16];
 		}
 		break;
 	case AVA9_P_STATUS_FAC:
