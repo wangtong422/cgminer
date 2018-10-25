@@ -66,6 +66,7 @@ uint32_t opt_avalon9_h2ltime0_spd = AVA9_DEFAULT_H2LTIME0_SPD;
 uint32_t opt_avalon9_roll_enable = AVA9_DEFAULT_ROLL_ENABLE;
 uint32_t opt_avalon9_spdlow = AVA9_DEFAULT_SPDLOW;
 uint32_t opt_avalon9_spdhigh = AVA9_DEFAULT_SPDHIGH;
+uint32_t opt_avalon9_tbase = AVA9_DEFAULT_TBASE;
 
 uint32_t opt_avalon9_pid_p = AVA9_DEFAULT_PID_P;
 uint32_t opt_avalon9_pid_i = AVA9_DEFAULT_PID_I;
@@ -1671,6 +1672,11 @@ static void avalon9_init_setting(struct cgpu_info *avalon9, int addr)
 	applog(LOG_DEBUG, "%s-%d-%d: avalon9 set spdhigh %u",
 			avalon9->drv->name, avalon9->device_id, addr,
 			opt_avalon9_spdhigh);
+
+	send_pkg.data[30] = opt_avalon9_tbase & 0xff;
+	applog(LOG_DEBUG, "%s-%d-%d: avalon9 set tbase %u",
+			avalon9->drv->name, avalon9->device_id, addr,
+			opt_avalon9_tbase);
 
 	/* Package the data */
 	avalon9_init_pkg(&send_pkg, AVA9_P_SET, 1, 1);

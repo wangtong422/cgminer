@@ -78,6 +78,7 @@
 #define AVA9_DEFAULT_ROLL_ENABLE	1
 #define AVA9_DEFAULT_SPDLOW		2
 #define AVA9_DEFAULT_SPDHIGH		3
+#define AVA9_DEFAULT_TBASE		0
 
 /* PID CONTROLLER*/
 #define AVA9_DEFAULT_PID_P		2
@@ -357,6 +358,7 @@ extern uint32_t opt_avalon9_h2ltime0_spd;
 extern uint32_t opt_avalon9_roll_enable;
 extern uint32_t opt_avalon9_spdlow;
 extern uint32_t opt_avalon9_spdhigh;
+extern uint32_t opt_avalon9_tbase;
 extern uint32_t opt_avalon9_pid_p;
 extern uint32_t opt_avalon9_pid_i;
 extern uint32_t opt_avalon9_pid_d;
