@@ -129,7 +129,7 @@ struct avalon9_dev_description avalon9_dev_table[] = {
 	{
 		"911",
 		911,
-		6,
+		4,
 		34,
 		5,
 		{
