@@ -95,6 +95,10 @@ char *curly = ":D";
 #include "driver-avalon9.h"
 #endif
 
+#ifdef USE_AVALONLC3
+#include "driver-avalonlc3.h"
+#endif
+
 #ifdef USE_AVALON_MINER
 #include "driver-avalon-miner.h"
 #endif
@@ -290,6 +294,13 @@ static char *opt_set_avalon9_voltage_level;
 static char *opt_set_avalon9_voltage_level_offset;
 static char *opt_set_avalon9_freq;
 static char *opt_set_avalon9_asic_otp;
+#endif
+#ifdef USE_AVALONLC3
+static char *opt_set_avalonlc3_fan;
+static char *opt_set_avalonlc3_voltage_level;
+static char *opt_set_avalonlc3_voltage_level_offset;
+static char *opt_set_avalonlc3_freq;
+static char *opt_set_avalonlc3_asic_otp;
 #endif
 #ifdef USE_AVALON_MINER
 static char *opt_set_avalonm_voltage;
@@ -857,7 +868,7 @@ static char *set_int_1_to_65535(const char *arg, int *i)
 	return set_int_range(arg, i, 1, 65535);
 }
 
-#if defined (USE_AVALON8) || defined (USE_AVALON9)
+#if defined (USE_AVALON8) || defined (USE_AVALON9) || defined (USE_AVALONLC3)
 static char *set_int_0_to_1(const char *arg, int *i)
 {
 	return set_int_range(arg, i, 0, 1);
@@ -1701,6 +1712,98 @@ static struct opt_table opt_config_table[] = {
 		     set_int_0_to_9999, opt_show_intval, &opt_avalon9_pid_d,
 		     "Set Avalon9 pid-d, range 0-9999."),
 #endif
+#ifdef USE_AVALONLC3
+	OPT_WITH_CBARG("--avalonlc3-voltage-level",
+		     set_avalonlc3_voltage_level, NULL, &opt_set_avalonlc3_voltage_level,
+		     "Set Avalonlc3 default level of core voltage, range:[0, 31], step: 1"),
+	OPT_WITH_CBARG("--avalonlc3-voltage-level-offset",
+		     set_avalonlc3_voltage_level_offset, NULL, &opt_set_avalonlc3_voltage_level_offset,
+		     "Set Avalonlc3 default offset of core voltage level, range:[-2, 1], step: 1"),
+	OPT_WITH_CBARG("--avalonlc3-freq",
+		     set_avalonlc3_freq, NULL, &opt_set_avalonlc3_freq,
+		     "Set Avalonlc3 default frequency, range:[25, 1200], step: 25, example: 800"),
+	OPT_WITH_ARG("--avalonlc3-freq-sel",
+		     set_int_0_to_4, opt_show_intval, &opt_avalonlc3_freq_sel,
+		     "Set Avalonlc3 default frequency select, range:[0, 4], step: 1, example: 3"),
+	OPT_WITH_CBARG("--avalonlc3-fan",
+		     set_avalonlc3_fan, NULL, &opt_set_avalonlc3_fan,
+		     "Set Avalonlc3 target fan speed, range:[0, 100], step: 1, example: 0-100"),
+	OPT_WITH_ARG("--avalonlc3-temp",
+		     set_int_0_to_100, opt_show_intval, &opt_avalonlc3_temp_target,
+		     "Set Avalonlc3 target temperature, range:[0, 100]"),
+	OPT_WITH_ARG("--avalonlc3-polling-delay",
+		     set_int_1_to_65535, opt_show_intval, &opt_avalonlc3_polling_delay,
+		     "Set Avalonlc3 polling delay value (ms)"),
+	OPT_WITH_ARG("--avalonlc3-aucspeed",
+		     opt_set_intval, opt_show_intval, &opt_avalonlc3_aucspeed,
+		     "Set AUC3 IIC bus speed"),
+	OPT_WITH_ARG("--avalonlc3-aucxdelay",
+		     opt_set_intval, opt_show_intval, &opt_avalonlc3_aucxdelay,
+		     "Set AUC3 IIC xfer read delay, 4800 ~= 1ms"),
+	OPT_WITH_ARG("--avalonlc3-smart-speed",
+		     opt_set_intval, opt_show_intval, &opt_avalonlc3_smart_speed,
+		     "Set Avalonlc3 smart speed, range 0-1. 0 means Disable"),
+	OPT_WITH_ARG("--avalonlc3-th-pass",
+		     set_int_0_to_65535, opt_show_intval, &opt_avalonlc3_th_pass,
+		     "Set A3210M th pass value"),
+	OPT_WITH_ARG("--avalonlc3-th-fail",
+		     set_int_0_to_65535, opt_show_intval, &opt_avalonlc3_th_fail,
+		     "Set A3210M th fail value"),
+	OPT_WITH_ARG("--avalonlc3-th-init",
+		     set_int_0_to_65535, opt_show_intval, &opt_avalonlc3_th_init,
+		     "Set A3210M th init value"),
+	OPT_WITH_ARG("--avalonlc3-th-ms",
+		     set_int_0_to_65535, opt_show_intval, &opt_avalonlc3_th_ms,
+		     "Set A3210M th ms value"),
+	OPT_WITH_ARG("--avalonlc3-th-timeout",
+		     opt_set_uintval, opt_show_uintval, &opt_avalonlc3_th_timeout,
+		     "Set A3210M th timeout value"),
+	OPT_WITH_ARG("--avalonlc3-th-add",
+		     set_int_0_to_1, opt_show_intval, &opt_avalonlc3_th_add,
+		     "Set A3210M th add value"),
+	OPT_WITHOUT_ARG("--avalonlc3-iic-detect",
+		     opt_set_bool, &opt_avalonlc3_iic_detect,
+		     "Enable Avalonlc3 detect through iic controller"),
+	OPT_WITH_ARG("--avalonlc3-nonce-mask",
+		     set_int_24_to_32, opt_show_intval, &opt_avalonlc3_nonce_mask,
+		     "Set A3210M nonce mask, range 24-32."),
+	OPT_WITH_ARG("--avalonlc3-nonce-check",
+		     set_int_0_to_1, opt_show_intval, &opt_avalonlc3_nonce_check,
+		     "Set A3210M nonce check, range 0-1."),
+	OPT_WITH_ARG("--avalonlc3-roll-enable",
+		     set_int_0_to_1, opt_show_intval, &opt_avalonlc3_roll_enable,
+		     "Set A3210M roll enable, range 0-1."),
+	OPT_WITH_ARG("--avalonlc3-mux-l2h",
+		     set_int_0_to_2, opt_show_intval, &opt_avalonlc3_mux_l2h,
+		     "Set Avalonlc3 mux l2h, range 0-2."),
+	OPT_WITH_ARG("--avalonlc3-mux-h2l",
+		     set_int_0_to_1, opt_show_intval, &opt_avalonlc3_mux_h2l,
+		     "Set Avalonlc3 mux h2l, range 0-1."),
+	OPT_WITH_ARG("--avalonlc3-h2ltime0-spd",
+		     set_int_0_to_255, opt_show_intval, &opt_avalonlc3_h2ltime0_spd,
+		     "Set Avalonlc3 h2ltime0 spd, range 0-255."),
+	OPT_WITH_ARG("--avalonlc3-spdlow",
+		     set_int_0_to_3, opt_show_intval, &opt_avalonlc3_spdlow,
+		     "Set Avalonlc3 spdlow, range 0-3."),
+	OPT_WITH_ARG("--avalonlc3-spdhigh",
+		     set_int_0_to_3, opt_show_intval, &opt_avalonlc3_spdhigh,
+		     "Set Avalonlc3 spdhigh, range 0-3."),
+	OPT_WITH_ARG("--avalonlc3-tbase",
+		     set_int_0_to_255, opt_show_intval, &opt_avalonlc3_tbase,
+		     "Set Avalonlc3 tbase and use (0-8) bits, range 0-255."),
+	OPT_WITH_CBARG("--avalonlc3-cinfo-asic",
+		     set_avalonlc3_asic_otp, NULL, &opt_set_avalonlc3_asic_otp,
+		     "Set Avalonlc3 cinfo asic index, range:[0, 25], step: 1"),
+	OPT_WITH_ARG("--avalonlc3-pid-p",
+		     set_int_0_to_9999, opt_show_intval, &opt_avalonlc3_pid_p,
+		     "Set Avalonlc3 pid-p, range 0-9999."),
+	OPT_WITH_ARG("--avalonlc3-pid-i",
+		     set_int_0_to_9999, opt_show_intval, &opt_avalonlc3_pid_i,
+		     "Set Avalonlc3 pid-i, range 0-9999."),
+	OPT_WITH_ARG("--avalonlc3-pid-d",
+		     set_int_0_to_9999, opt_show_intval, &opt_avalonlc3_pid_d,
+		     "Set Avalonlc3 pid-d, range 0-9999."),
+#endif
 #ifdef USE_AVALON_MINER
 	OPT_WITH_CBARG("--avalonm-voltage",
 		     set_avalonm_voltage, NULL, &opt_set_avalonm_voltage,
@@ -2409,6 +2512,9 @@ static char *opt_verusage_and_exit(const char *extra)
 #endif
 #ifdef USE_AVALON9
 		"avalon9 "
+#endif
+#ifdef USE_AVALONLC3
+		"avalonlc3 "
 #endif
 #ifdef USE_AVALON_MINER
 		"avalon miner"
@@ -7515,7 +7621,8 @@ void set_target(unsigned char *dest_target, double diff)
 	cg_memcpy(dest_target, target, 32);
 }
 
-#if defined (USE_AVALON2) || defined (USE_AVALON4) || defined (USE_AVALON7) || defined (USE_AVALON8) || defined (USE_AVALON9) || defined (USE_AVALON_MINER) || defined (USE_HASHRATIO)
+#if defined (USE_AVALON2) || defined (USE_AVALON4) || defined (USE_AVALON7) || defined (USE_AVALON8) || defined (USE_AVALON9) || defined (USE_AVALONLC3) \
+	|| defined (USE_AVALON_MINER) || defined (USE_HASHRATIO)
 bool submit_nonce2_nonce(struct thr_info *thr, struct pool *pool, struct pool *real_pool,
 			 uint32_t nonce2, uint32_t nonce,  uint32_t ntime)
 {

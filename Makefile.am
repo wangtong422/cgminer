@@ -173,6 +173,10 @@ if HAS_AVALON9
 cgminer_SOURCES += driver-avalon9.c driver-avalon9.h
 endif
 
+if HAS_AVALONLC3
+cgminer_SOURCES += driver-avalonlc3.c driver-avalonlc3.h
+
+endif
 if NEED_I2C_CONTEXT
 cgminer_SOURCES += i2c-context.c
 endif

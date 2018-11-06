@@ -151,6 +151,7 @@ enum sub_ident {
 	IDENT_AV7,
 	IDENT_AV8,
 	IDENT_AV9,
+	IDENT_AVLC3,
 	IDENT_AVM,
 	IDENT_BAJ,
 	IDENT_BAL,
@@ -395,6 +396,8 @@ struct cg_usb_info {
 	USB_ADD_COMMAND(C_AVA8_WRITE, "Ava8Write") \
 	USB_ADD_COMMAND(C_AVA9_READ, "Ava9Read") \
 	USB_ADD_COMMAND(C_AVA9_WRITE, "Ava9Write") \
+	USB_ADD_COMMAND(C_AVALC3_READ, "Avalc3Read") \
+	USB_ADD_COMMAND(C_AVALC3_WRITE, "Avalc3Write") \
 	USB_ADD_COMMAND(C_AVAM_READ, "AvamRead") \
 	USB_ADD_COMMAND(C_AVAM_WRITE, "AvamWrite") \
         USB_ADD_COMMAND(C_BET_WRITE, "BlockErupterWrite") \
