@@ -127,8 +127,8 @@ uint32_t cpm_table[] =
 
 struct avalon9_dev_description avalon9_dev_table[] = {
 	{
-		"911",
-		911,
+		"LC3",
+		0xac3,
 		4,
 		34,
 		5,
