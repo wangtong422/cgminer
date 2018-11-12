@@ -2110,90 +2110,92 @@ static int64_t avalon9_scanhash(struct thr_info *thr)
 			avalon9_set_finish(avalon9, i);
 			cg_wunlock(&info->update_lock);
 		} else {
-			adjust_volt_setting = 0;
-			if (!info->volt_adjusted[i] && do_adjust_volt_freq) {
-				if (info->volt_adjusted_cnt[i] > (AVA9_ADJUST_VOLT_CNT - 2)) {
-					pass = 0;
-					fail = 0;
-					for (j = 0; j < info->miner_count[i]; j++) {
-						for (k = 0; k < info->asic_count[i]; k++) {
-							pass += info->get_asic[i][j][k][0];
-							fail += info->get_asic[i][j][k][1];
-						}
-					}
-
-					dh = fail ? (fail / (pass + fail)) * 100 : 0;
-					wu = info->diff1[i] / tdiff(&current, &(info->elapsed[i])) * 60.0;
-
-					if (wu > AVA9_DEFAULT_WU_MAX) {
-						if (dh < AVA9_DEFAULT_DH_MIN)
-							volt_level_inc = -2 * AVA9_ADJUST_VOLT_STEP;
-						else if (dh < AVA9_DEFAULT_DH_MAX)
-							volt_level_inc = -1 * AVA9_ADJUST_VOLT_STEP;
-						else
-							volt_level_inc = 0;
-					} else if (wu < AVA9_DEFAULT_WU_MIN) {
-						if (dh > AVA9_DEFAULT_DH_MAX)
-							volt_level_inc = 4 * AVA9_ADJUST_VOLT_STEP;
-						else if (dh > AVA9_DEFAULT_DH_MIN)
-							volt_level_inc = 3 * AVA9_ADJUST_VOLT_STEP;
-						else
-							volt_level_inc = 2 * AVA9_ADJUST_VOLT_STEP;
-					} else if (wu < AVA9_DEFAULT_WU) {
-						volt_level_inc = AVA9_ADJUST_VOLT_STEP;
-					} else {
-						volt_level_inc = 0;
-					}
-
-					if (volt_level_inc) {
+			if (!strncmp((char *)&(info->mm_version[i]), "921", 3)) {
+				adjust_volt_setting = 0;
+				if (!info->volt_adjusted[i] && do_adjust_volt_freq) {
+					if (info->volt_adjusted_cnt[i] > (AVA9_ADJUST_VOLT_CNT - 2)) {
+						pass = 0;
+						fail = 0;
 						for (j = 0; j < info->miner_count[i]; j++) {
-							volt_level_vlaue = info->set_voltage_level[i][j] + volt_level_inc;
-							if ((volt_level_vlaue >= AVA9_DEFAULT_VOLTAGE_LEVEL_MIN)
-										&& (volt_level_vlaue <= AVA9_DEFAULT_VOLTAGE_LEVEL_MAX)) {
-								info->set_voltage_level[i][j] = volt_level_vlaue;
-								adjust_volt_setting = 1;
+							for (k = 0; k < info->asic_count[i]; k++) {
+								pass += info->get_asic[i][j][k][0];
+								fail += info->get_asic[i][j][k][1];
+							}
+						}
+
+						dh = fail ? (fail / (pass + fail)) * 100 : 0;
+						wu = info->diff1[i] / tdiff(&current, &(info->elapsed[i])) * 60.0;
+
+						if (wu > AVA9_DEFAULT_WU_MAX) {
+							if (dh < AVA9_DEFAULT_DH_MIN)
+								volt_level_inc = -2 * AVA9_ADJUST_VOLT_STEP;
+							else if (dh < AVA9_DEFAULT_DH_MAX)
+								volt_level_inc = -1 * AVA9_ADJUST_VOLT_STEP;
+							else
+								volt_level_inc = 0;
+						} else if (wu < AVA9_DEFAULT_WU_MIN) {
+							if (dh > AVA9_DEFAULT_DH_MAX)
+								volt_level_inc = 4 * AVA9_ADJUST_VOLT_STEP;
+							else if (dh > AVA9_DEFAULT_DH_MIN)
+								volt_level_inc = 3 * AVA9_ADJUST_VOLT_STEP;
+							else
+								volt_level_inc = 2 * AVA9_ADJUST_VOLT_STEP;
+						} else if (wu < AVA9_DEFAULT_WU) {
+							volt_level_inc = AVA9_ADJUST_VOLT_STEP;
+						} else {
+							volt_level_inc = 0;
+						}
+
+						if (volt_level_inc) {
+							for (j = 0; j < info->miner_count[i]; j++) {
+								volt_level_vlaue = info->set_voltage_level[i][j] + volt_level_inc;
+								if ((volt_level_vlaue >= AVA9_DEFAULT_VOLTAGE_LEVEL_MIN)
+											&& (volt_level_vlaue <= AVA9_DEFAULT_VOLTAGE_LEVEL_MAX)) {
+									info->set_voltage_level[i][j] = volt_level_vlaue;
+									adjust_volt_setting = 1;
+								}
 							}
 						}
 					}
+
+					info->volt_adjusted_cnt[i]++;
+					if (info->volt_adjusted_cnt[i] > AVA9_ADJUST_VOLT_CNT)
+						info->volt_adjusted[i] = 1;
 				}
 
-				info->volt_adjusted_cnt[i]++;
-				if (info->volt_adjusted_cnt[i] > AVA9_ADJUST_VOLT_CNT)
-					info->volt_adjusted[i] = 1;
-			}
+				adjust_freq_setting = 0;
+				if (!info->freq_adjusted[i] && do_adjust_volt_freq) {
+					wu = info->diff1[i] / tdiff(&current, &(info->elapsed[i])) * 60.0;
+					ghsmm = avalon9_hash_cal(avalon9, i) / 1000.0;
 
-			adjust_freq_setting = 0;
-			if (!info->freq_adjusted[i] && do_adjust_volt_freq) {
-				wu = info->diff1[i] / tdiff(&current, &(info->elapsed[i])) * 60.0;
-				ghsmm = avalon9_hash_cal(avalon9, i) / 1000.0;
+					if ((wu < AVA9_DEFAULT_WU) && (ghsmm < AVA9_DEFAULT_GHSMM_MIN)) {
+						for (j = 0; j < info->miner_count[i]; j++) {
+							if ((info->set_frequency[i][j][AVA9_DEFAULT_PLL_CNT - 1] + AVA9_ADJUST_FREQ_STEP) > AVA9_ADJUST_FREQ_MAX)
+								continue;
 
-				if ((wu < AVA9_DEFAULT_WU) && (ghsmm < AVA9_DEFAULT_GHSMM_MIN)) {
-					for (j = 0; j < info->miner_count[i]; j++) {
-						if ((info->set_frequency[i][j][AVA9_DEFAULT_PLL_CNT - 1] + AVA9_ADJUST_FREQ_STEP) > AVA9_ADJUST_FREQ_MAX)
-							continue;
-
-						for (k = 0; k < AVA9_DEFAULT_PLL_CNT; k++) {
-							if (info->set_frequency[i][j][k])
-								info->set_frequency[i][j][k] += AVA9_ADJUST_FREQ_STEP;
+							for (k = 0; k < AVA9_DEFAULT_PLL_CNT; k++) {
+								if (info->set_frequency[i][j][k])
+									info->set_frequency[i][j][k] += AVA9_ADJUST_FREQ_STEP;
+							}
+							adjust_freq_setting = 1;
+							info->freq_adjusted[i] = 1;
 						}
-						adjust_freq_setting = 1;
-						info->freq_adjusted[i] = 1;
 					}
 				}
-			}
 
-			cg_wlock(&info->update_lock);
-			if (adjust_volt_setting) {
-				avalon9_set_voltage_level(avalon9, i, info->set_voltage_level[i]);
-				for (j = 0; j < info->miner_count[i]; j++)
-					avalon9_set_freq(avalon9, i, j, info->set_frequency[i][j]);
-			} else {
-				if (adjust_freq_setting) {
+				cg_wlock(&info->update_lock);
+				if (adjust_volt_setting) {
+					avalon9_set_voltage_level(avalon9, i, info->set_voltage_level[i]);
 					for (j = 0; j < info->miner_count[i]; j++)
 						avalon9_set_freq(avalon9, i, j, info->set_frequency[i][j]);
+				} else {
+					if (adjust_freq_setting) {
+						for (j = 0; j < info->miner_count[i]; j++)
+							avalon9_set_freq(avalon9, i, j, info->set_frequency[i][j]);
+					}
 				}
+				cg_wunlock(&info->update_lock);
 			}
-			cg_wunlock(&info->update_lock);
 		}
 	}
 
