@@ -65,7 +65,7 @@ uint32_t opt_avalon9_mux_l2h = AVA9_DEFAULT_MUX_L2H;
 uint32_t opt_avalon9_mux_h2l = AVA9_DEFAULT_MUX_H2L;
 uint32_t opt_avalon9_h2ltime0_spd = AVA9_DEFAULT_H2LTIME0_SPD;
 uint32_t opt_avalon9_roll_enable = AVA9_DEFAULT_ROLL_ENABLE;
-uint32_t opt_avalon9_spdlow = AVA9_DEFAULT_SPDLOW;
+uint32_t opt_avalon9_spdlow = AVA9_INVALID_SPDLOW;
 uint32_t opt_avalon9_spdhigh = AVA9_DEFAULT_SPDHIGH;
 uint32_t opt_avalon9_tbase = AVA9_DEFAULT_TBASE;
 
@@ -163,6 +163,24 @@ struct avalon9_dev_description avalon9_dev_table[] = {
 			AVA9_DEFAULT_FREQUENCY_750M,
 			AVA9_DEFAULT_FREQUENCY_775M,
 			AVA9_DEFAULT_FREQUENCY_800M
+		}
+	},
+	{
+		"920",
+		920,
+		4,
+		26,
+		AVA9_MM920_VIN_ADC_RATIO,
+		AVA9_MM920_VOUT_ADC_RATIO,
+		5,
+		{
+			AVA9_DEFAULT_FREQUENCY_0M,
+			AVA9_DEFAULT_FREQUENCY_0M,
+			AVA9_DEFAULT_FREQUENCY_0M,
+			AVA9_DEFAULT_FREQUENCY_0M,
+			AVA9_DEFAULT_FREQUENCY_0M,
+			AVA9_DEFAULT_FREQUENCY_700M,
+			AVA9_DEFAULT_FREQUENCY_750M
 		}
 	}
 };
@@ -2055,6 +2073,16 @@ static int64_t avalon9_scanhash(struct thr_info *thr)
 					}
 				}
 
+				if (!strncmp((char *)&(info->mm_version[i]), "921", 3)) {
+					if (opt_avalon9_spdlow == AVA9_INVALID_SPDLOW)
+						opt_avalon9_spdlow = AVA9_DEFAULT_MM921_SPDLOW;
+				} else if (!strncmp((char *)&(info->mm_version[i]), "920", 3)) {
+					if (opt_avalon9_spdlow == AVA9_INVALID_SPDLOW)
+						opt_avalon9_spdlow = AVA9_DEFAULT_MM920_SPDLOW;
+				} else {
+					if (opt_avalon9_spdlow == AVA9_INVALID_SPDLOW)
+						opt_avalon9_spdlow = AVA9_DEFAULT_SPDLOW;
+				}
 				avalon9_init_setting(avalon9, i);
 
 				info->freq_mode[i] = AVA9_FREQ_PLLADJ_MODE;
