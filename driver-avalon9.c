@@ -722,7 +722,7 @@ static int decode_pkg(struct cgpu_info *avalon9, struct avalon9_ret *ar, int mod
 		break;
 	case AVA9_P_STATUS_FAC:
 		applog(LOG_DEBUG, "%s-%d-%d: AVA9_P_STATUS_FAC", avalon9->drv->name, avalon9->device_id, modular_id);
-		info->factory_info[0] = ar->data[0];
+		info->factory_info[modular_id][0] = ar->data[0];
 		break;
 	case AVA9_P_STATUS_OC:
 		applog(LOG_DEBUG, "%s-%d-%d: AVA9_P_STATUS_OC", avalon9->drv->name, avalon9->device_id, modular_id);
@@ -2243,7 +2243,7 @@ static struct api_data *avalon9_api_stats(struct cgpu_info *avalon9)
 		strcat(statbuf, buf);
 
 		if (opt_debug) {
-			sprintf(buf, " FAC0[%d]", info->factory_info[0]);
+			sprintf(buf, " FAC0[%d]", info->factory_info[i][0]);
 			strcat(statbuf, buf);
 
 			sprintf(buf, " OC[%d]", info->overclocking_info[0]);
@@ -2530,7 +2530,7 @@ char *set_avalon9_factory_info(struct cgpu_info *avalon9, char *arg)
 {
 	struct avalon9_info *info = avalon9->device_data;
 	char type[AVA9_DEFAULT_FACTORY_INFO_1_CNT];
-	int val;
+	int val, i;
 
 	if (!(*arg))
 		return NULL;
@@ -2543,11 +2543,16 @@ char *set_avalon9_factory_info(struct cgpu_info *avalon9, char *arg)
 				(val < AVA9_DEFAULT_FACTORY_INFO_0_MIN || val > AVA9_DEFAULT_FACTORY_INFO_0_MAX))
 		return "Invalid value passed to set_avalon9_factory_info";
 
-	info->factory_info[0] = val;
+	for (i = 1; i < AVA9_DEFAULT_MODULARS; i++) {
+		if (!info->enable[i])
+			continue;
 
-	memcpy(&info->factory_info[1], type, AVA9_DEFAULT_FACTORY_INFO_1_CNT);
+		info->factory_info[i][0] = val;
 
-	avalon9_set_factory_info(avalon9, 0, (uint8_t *)info->factory_info);
+		memcpy(&info->factory_info[i][1], type, AVA9_DEFAULT_FACTORY_INFO_1_CNT);
+
+		avalon9_set_factory_info(avalon9, i, (uint8_t *)info->factory_info[i]);
+	}
 
 	applog(LOG_NOTICE, "%s-%d: Update factory info %d",
 		avalon9->drv->name, avalon9->device_id, val);

@@ -285,7 +285,7 @@ struct avalon9_info {
 
 	uint32_t get_asic[AVA9_DEFAULT_MODULARS][AVA9_DEFAULT_MINER_CNT][AVA9_DEFAULT_ASIC_MAX][6];
 
-	int8_t factory_info[AVA9_DEFAULT_FACTORY_INFO_CNT];
+	int8_t factory_info[AVA9_DEFAULT_MODULARS][AVA9_DEFAULT_FACTORY_INFO_CNT];
 	int8_t overclocking_info[AVA9_DEFAULT_OVERCLOCKING_CNT];
 
 	uint64_t local_works[AVA9_DEFAULT_MODULARS];
