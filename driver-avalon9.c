@@ -2284,6 +2284,22 @@ static struct api_data *avalon9_api_stats(struct cgpu_info *avalon9)
 				statbuf[strlen(statbuf)] = '\0';
 			}
 
+			int l;
+			/* i: modular, j: miner, k: asic, l: value */
+			for (j = 0; j < info->miner_count[i]; j++) {
+				for (l = 0; l < AVA9_DEFAULT_PLL_CNT; l++) {
+					sprintf(buf, " PLLCNT%d_%d[", j, l);
+					strcat(statbuf, buf);
+					for (k = 0; k < info->asic_count[i]; k++) {
+						sprintf(buf, "%3d ", info->get_asic[i][j][k][2 + l]);
+						strcat(statbuf, buf);
+					}
+
+					statbuf[strlen(statbuf) - 1] = ']';
+					statbuf[strlen(statbuf)] = '\0';
+				}
+			}
+
 			for (j = 0; j < info->miner_count[i]; j++) {
 				sprintf(buf, " ERATIO%d[", j);
 				strcat(statbuf, buf);
@@ -2298,8 +2314,7 @@ static struct api_data *avalon9_api_stats(struct cgpu_info *avalon9)
 				statbuf[strlen(statbuf) - 1] = ']';
 			}
 
-			int l;
-			/* i: modular, j: miner, k:asic, l:value */
+			/* i: modular, j: miner, k: asic, l: value */
 			for (l = 0; l < 2; l++) {
 				for (j = 0; j < info->miner_count[i]; j++) {
 					sprintf(buf, " C_%02d_%02d[", j, l);
