@@ -450,6 +450,25 @@ static inline int get_temp_max(struct avalon9_info *info, int addr)
 	return max;
 }
 
+/* Calculate ASIC (13 - 22) average */
+static inline int get_temp_average(struct avalon9_info *info, int addr)
+{
+	int i, j;
+	int average = -273;
+	int sum = 0;
+
+	for (i = 0; i < info->miner_count[addr]; i++) {
+		for (j = AVA9_DEFAULT_ASIC_AVERAGE_TEMP_START; j <= AVA9_DEFAULT_ASIC_AVERAGE_TEMP_END; j++)
+			sum += info->temp[addr][i][j];
+	}
+	average = sum / AVA9_DEFAULT_ASIC_AVERAGE_TEMP_COUNT;
+
+	if (average < info->temp_mm[addr])
+		average = info->temp_mm[addr];
+
+	return average;
+}
+
 /*
  * Incremental PID controller
  *
@@ -2242,6 +2261,9 @@ static struct api_data *avalon9_api_stats(struct cgpu_info *avalon9)
 		strcat(statbuf, buf);
 
 		sprintf(buf, " TMax[%d]", get_temp_max(info, i));
+		strcat(statbuf, buf);
+
+		sprintf(buf, " TAverage[%d]", get_temp_average(info, i));
 		strcat(statbuf, buf);
 
 		sprintf(buf, " Fan[%d]", info->fan_cpm[i]);
