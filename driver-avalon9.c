@@ -481,26 +481,50 @@ static inline int get_temp_average(struct avalon9_info *info, int addr)
  */
 static inline uint32_t adjust_fan(struct avalon9_info *info, int id)
 {
-	int t;
+	int t, ta, temp;
 	double delta_u;
 	double delta_p, delta_i, delta_d;
 	uint32_t pwm;
+	static uint8_t count = 0;
+	static uint8_t flag = 0;
+	static uint16_t time_count = 0;
 
 	t = get_temp_max(info, id);
+	ta = get_temp_average(info, id);
+
+	/* Before 10Mins, used max temp */
+	if (time_count > 300) {
+		if ((t > AVA9_DEFAULT_PID_TEMP_MAX) || flag) {
+			temp = t;
+
+			if (!flag)
+				flag = 1;
+
+			if (count++ > 5) {
+				flag = 0;
+				count = 0;
+			}
+		} else {
+			temp = ta;
+		}
+	} else {
+		temp = t;
+		time_count++;
+	}
 
 	/* update target error */
 	info->pid_e[id][2] = info->pid_e[id][1];
 	info->pid_e[id][1] = info->pid_e[id][0];
-	info->pid_e[id][0] = t - info->temp_target[id];
+	info->pid_e[id][0] = temp - info->temp_target[id];
 
-	if (t > AVA9_DEFAULT_PID_TEMP_MAX) {
+	if (temp > AVA9_DEFAULT_PID_TEMP_MAX) {
 		info->pid_u[id] = opt_avalon9_fan_max;
-	} else if (t < AVA9_DEFAULT_PID_TEMP_MIN) {
+	} else if (temp < AVA9_DEFAULT_PID_TEMP_MIN && info->pid_0[id] == 0) {
 		info->pid_u[id] = opt_avalon9_fan_min;
 	} else if (!info->pid_0[id]) {
 			/* first, init u as t */
 			info->pid_0[id] = 1;
-			info->pid_u[id] = t;
+			info->pid_u[id] = temp;
 	} else {
 		delta_p = info->pid_p[id] * (info->pid_e[id][0] - info->pid_e[id][1]);
 		delta_i = info->pid_i[id] * info->pid_e[id][0];
