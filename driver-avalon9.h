@@ -168,6 +168,7 @@
 #define AVA9_P_STATUS_OC	0x4e
 #define AVA9_P_STATUS_OTP	0x4f
 #define AVA9_P_SET_ASIC_OTP	0x50
+#define AVA9_P_SET_ADJUST_VOLT	0x51
 
 #define AVA9_MODULE_BROADCAST	0
 /* End of avalon9 protocol package type */
@@ -291,7 +292,7 @@ struct avalon9_info {
 
 	uint32_t get_asic[AVA9_DEFAULT_MODULARS][AVA9_DEFAULT_MINER_CNT][AVA9_DEFAULT_ASIC_MAX][6];
 
-	int8_t factory_info[AVA9_DEFAULT_MODULARS][AVA9_DEFAULT_FACTORY_INFO_CNT];
+	int8_t factory_info[AVA9_DEFAULT_MODULARS][AVA9_DEFAULT_FACTORY_INFO_CNT + 1];
 	int8_t overclocking_info[AVA9_DEFAULT_OVERCLOCKING_CNT];
 
 	uint64_t local_works[AVA9_DEFAULT_MODULARS];
