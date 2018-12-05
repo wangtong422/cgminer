@@ -1988,8 +1988,7 @@ static void avalon9_set_adjust_voltage_option(struct cgpu_info *avalon9, int add
 {
 	struct avalon9_info *info = avalon9->device_data;
 	struct avalon9_pkg send_pkg;
-	uint32_t tmp, f;
-	uint8_t i;
+	int32_t tmp;
 
 	memset(send_pkg.data, 0, AVA9_P_DATA_LEN);
 
@@ -2023,7 +2022,7 @@ static void avalon9_set_adjust_voltage_option(struct cgpu_info *avalon9, int add
 	applog(LOG_DEBUG, "%s-%d-%d: avalon9 set down threshold %d",
 			avalon9->drv->name, avalon9->device_id, addr, down_threshold);
 
-	tmp = be32toh(down_threshold);
+	tmp = be32toh(time);
 	memcpy(send_pkg.data + 24, &tmp, 4);
 	applog(LOG_DEBUG, "%s-%d-%d: avalon9 set time %d",
 			avalon9->drv->name, avalon9->device_id, addr, time);
