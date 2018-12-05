@@ -820,7 +820,7 @@ static int decode_pkg(struct cgpu_info *avalon9, struct avalon9_ret *ar, int mod
 		if (ar->data[12]) {
 			for (i = 0; i < AVA9_DEFAULT_POWER_INFO_CNT; i++) {
 				memcpy(&power_info, ar->data + i * 2, 2);
-				info->power_info[i] = be16toh(power_info);
+				info->power_info[modular_id][i] = be16toh(power_info);
 			}
 		}
 		break;
@@ -2363,7 +2363,7 @@ static struct api_data *avalon9_api_stats(struct cgpu_info *avalon9)
 		sprintf(buf, " PS[");
 		strcat(statbuf, buf);
 		for (j = 0; j < AVA9_DEFAULT_POWER_INFO_CNT; j++) {
-			sprintf(buf, "%d ", info->power_info[j]);
+			sprintf(buf, "%d ", info->power_info[i][j]);
 			strcat(statbuf, buf);
 		}
 		statbuf[strlen(statbuf) - 1] = ']';

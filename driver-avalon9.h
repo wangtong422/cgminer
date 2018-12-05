@@ -312,7 +312,7 @@ struct avalon9_info {
 	uint16_t vin_adc_ratio[AVA9_DEFAULT_MODULARS];
 	uint16_t vout_adc_ratio[AVA9_DEFAULT_MODULARS];
 
-	uint16_t power_info[AVA9_DEFAULT_POWER_INFO_CNT];
+	uint16_t power_info[AVA9_DEFAULT_MODULARS][AVA9_DEFAULT_POWER_INFO_CNT];
 
 	bool conn_overloaded;
 };
