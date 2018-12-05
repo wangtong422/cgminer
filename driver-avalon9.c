@@ -456,14 +456,17 @@ static inline int get_temp_average(struct avalon9_info *info, int addr)
 	int i, j;
 	int average = -273;
 	int sum = 0;
+	uint32_t count = 0;
 
 	for (i = 0; i < info->miner_count[addr]; i++) {
 		for (j = AVA9_DEFAULT_ASIC_AVERAGE_TEMP_START; j <= AVA9_DEFAULT_ASIC_AVERAGE_TEMP_END; j++) {
-			if (info->temp[addr][i][j] > 0)
+			if (info->temp[addr][i][j] > 0) {
 				sum += info->temp[addr][i][j];
+				count++;
+			}
 		}
 	}
-	average = sum / AVA9_DEFAULT_ASIC_AVERAGE_TEMP_COUNT;
+	average = sum / count;
 
 	if (average < info->temp_mm[addr])
 		average = info->temp_mm[addr];
