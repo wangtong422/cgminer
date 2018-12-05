@@ -125,7 +125,7 @@ uint32_t cpm_table[] =
 	0x009785e1
 };
 
-uint32_t cpm_table_test[] =
+uint32_t cpm_table_point[] =
 {
 	0x00900c01,
 	0x00900c01,
@@ -143,7 +143,7 @@ uint32_t cpm_table_test[] =
 	0x00900c01,
 	0x00900c01,
 	0x00900c01,
-	0x00900c01, /* 412.5 */
+	0x00900c01, /* 412.5MHz */
 	0x00910c41,
 	0x00920c81,
 	0x00930cc1,
@@ -158,7 +158,7 @@ uint32_t cpm_table_test[] =
 	0x009c0f01,
 	0x009d0f41,
 	0x009e0f81,
-	0x009f0fc1, /* 787.5 */
+	0x009f0fc1, /* 787.5MHz */
 	0x009f0fc1,
 	0x009f0fc1,
 	0x009f0fc1,
@@ -199,7 +199,7 @@ static uint32_t api_get_cpm(uint32_t freq)
 	if (freq % 25 == 0)
 		return cpm_table[freq / 25];
 	else
-		return cpm_table_test[(freq - 12) / 25];
+		return cpm_table_point[(freq - 12) / 25];
 }
 
 static uint32_t encode_voltage(int volt_level)
