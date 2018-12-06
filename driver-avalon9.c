@@ -184,7 +184,7 @@ struct avalon9_dev_description avalon9_dev_table[] = {
 		911,
 		6,
 		34,
-		20,
+		26,
 		{
 			AVA9_DEFAULT_FREQUENCY_0M,
 			AVA9_DEFAULT_FREQUENCY_462M,
