@@ -450,13 +450,13 @@ static inline int get_temp_max(struct avalon9_info *info, int addr)
 	return max;
 }
 
-/* Calculate ASIC (13 - 22) average */
 static inline int get_temp_average(struct avalon9_info *info, int addr)
 {
 	int i, j;
 	int average = -273;
 	int sum = 0;
-	uint32_t count = 0;
+	int count = 0;
+	int tmp;
 
 	for (i = 0; i < info->miner_count[addr]; i++) {
 		for (j = AVA9_DEFAULT_ASIC_AVERAGE_TEMP_START; j <= AVA9_DEFAULT_ASIC_AVERAGE_TEMP_END; j++) {
@@ -465,8 +465,16 @@ static inline int get_temp_average(struct avalon9_info *info, int addr)
 				count++;
 			}
 		}
+
+		if (count) {
+			tmp = sum / count;
+			if (average < tmp)
+				average = tmp;
+		}
+
+		sum = 0;
+		count = 0;
 	}
-	average = sum / count;
 
 	if (average < info->temp_mm[addr])
 		average = info->temp_mm[addr];
