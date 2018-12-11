@@ -125,25 +125,81 @@ uint32_t cpm_table[] =
 	0x009785e1
 };
 
+uint32_t cpm_table_point[] =
+{
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01,
+	0x00900c01, /* 412.5MHz */
+	0x00910c41,
+	0x00920c81,
+	0x00930cc1,
+	0x00940d01,
+	0x00950d41,
+	0x00960d81,
+	0x00970dc1,
+	0x00980e01,
+	0x00990e41,
+	0x009a0e81,
+	0x009b0ec1,
+	0x009c0f01,
+	0x009d0f41,
+	0x009e0f81,
+	0x009f0fc1, /* 787.5MHz */
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1,
+	0x009f0fc1
+};
+
 struct avalon9_dev_description avalon9_dev_table[] = {
 	{
 		"911",
 		911,
 		6,
 		34,
-		20,
+		26,
 		{
 			AVA9_DEFAULT_FREQUENCY_0M,
-			AVA9_DEFAULT_FREQUENCY_450M,
-			AVA9_DEFAULT_FREQUENCY_500M,
-			AVA9_DEFAULT_FREQUENCY_550M
+			AVA9_DEFAULT_FREQUENCY_462M,
+			AVA9_DEFAULT_FREQUENCY_512M,
+			AVA9_DEFAULT_FREQUENCY_562M
 		}
 	}
 };
 
 static uint32_t api_get_cpm(uint32_t freq)
 {
-	return cpm_table[freq / 25];
+	if (freq % 25 == 0)
+		return cpm_table[freq / 25];
+	else
+		return cpm_table_point[(freq - 12) / 25];
 }
 
 static uint32_t encode_voltage(int volt_level)
@@ -394,6 +450,38 @@ static inline int get_temp_max(struct avalon9_info *info, int addr)
 	return max;
 }
 
+static inline int get_temp_average(struct avalon9_info *info, int addr)
+{
+	int i, j;
+	int average = -273;
+	int sum = 0;
+	int count = 0;
+	int tmp;
+
+	for (i = 0; i < info->miner_count[addr]; i++) {
+		for (j = AVA9_DEFAULT_ASIC_AVERAGE_TEMP_START; j <= AVA9_DEFAULT_ASIC_AVERAGE_TEMP_END; j++) {
+			if (info->temp[addr][i][j] > 0) {
+				sum += info->temp[addr][i][j];
+				count++;
+			}
+		}
+
+		if (count) {
+			tmp = sum / count;
+			if (average < tmp)
+				average = tmp;
+		}
+
+		sum = 0;
+		count = 0;
+	}
+
+	if (average < info->temp_mm[addr])
+		average = info->temp_mm[addr];
+
+	return average;
+}
+
 /*
  * Incremental PID controller
  *
@@ -406,26 +494,50 @@ static inline int get_temp_max(struct avalon9_info *info, int addr)
  */
 static inline uint32_t adjust_fan(struct avalon9_info *info, int id)
 {
-	int t;
+	int t, ta, temp;
 	double delta_u;
 	double delta_p, delta_i, delta_d;
 	uint32_t pwm;
+	static uint8_t count = 0;
+	static uint8_t flag = 0;
+	static uint16_t time_count = 0;
 
 	t = get_temp_max(info, id);
+	ta = get_temp_average(info, id);
+
+	/* Before 10Mins, used max temp */
+	if (time_count > 300) {
+		if ((t > AVA9_DEFAULT_PID_TEMP_MAX) || flag) {
+			temp = t;
+
+			if (!flag)
+				flag = 1;
+
+			if (count++ > 5) {
+				flag = 0;
+				count = 0;
+			}
+		} else {
+			temp = ta;
+		}
+	} else {
+		temp = t;
+		time_count++;
+	}
 
 	/* update target error */
 	info->pid_e[id][2] = info->pid_e[id][1];
 	info->pid_e[id][1] = info->pid_e[id][0];
-	info->pid_e[id][0] = t - info->temp_target[id];
+	info->pid_e[id][0] = temp - info->temp_target[id];
 
-	if (t > AVA9_DEFAULT_PID_TEMP_MAX) {
+	if (temp > AVA9_DEFAULT_PID_TEMP_MAX) {
 		info->pid_u[id] = opt_avalon9_fan_max;
-	} else if (t < AVA9_DEFAULT_PID_TEMP_MIN) {
+	} else if (temp < AVA9_DEFAULT_PID_TEMP_MIN && info->pid_0[id] == 0) {
 		info->pid_u[id] = opt_avalon9_fan_min;
 	} else if (!info->pid_0[id]) {
 			/* first, init u as t */
 			info->pid_0[id] = 1;
-			info->pid_u[id] = t;
+			info->pid_u[id] = temp;
 	} else {
 		delta_p = info->pid_p[id] * (info->pid_e[id][0] - info->pid_e[id][1]);
 		delta_i = info->pid_i[id] * info->pid_e[id][0];
@@ -716,13 +828,14 @@ static int decode_pkg(struct cgpu_info *avalon9, struct avalon9_ret *ar, int mod
 		if (ar->data[12]) {
 			for (i = 0; i < AVA9_DEFAULT_POWER_INFO_CNT; i++) {
 				memcpy(&power_info, ar->data + i * 2, 2);
-				info->power_info[i] = be16toh(power_info);
+				info->power_info[modular_id][i] = be16toh(power_info);
 			}
 		}
 		break;
 	case AVA9_P_STATUS_FAC:
 		applog(LOG_DEBUG, "%s-%d-%d: AVA9_P_STATUS_FAC", avalon9->drv->name, avalon9->device_id, modular_id);
 		info->factory_info[modular_id][0] = ar->data[0];
+		info->factory_info[modular_id][AVA9_DEFAULT_FACTORY_INFO_CNT] = ar->data[1];
 		break;
 	case AVA9_P_STATUS_OC:
 		applog(LOG_DEBUG, "%s-%d-%d: AVA9_P_STATUS_OC", avalon9->drv->name, avalon9->device_id, modular_id);
@@ -1742,7 +1855,7 @@ static void avalon9_set_asic_otp(struct cgpu_info *avalon9, int addr, unsigned i
 		avalon9_iic_xfer_pkg(avalon9, addr, &send_pkg, NULL);
 }
 
-static void avalon9_set_freq(struct cgpu_info *avalon9, int addr, int miner_id, unsigned int freq[])
+static void avalon9_set_freq(struct cgpu_info *avalon9, int addr, int miner_id, int asic_id, unsigned int freq[])
 {
 	struct avalon9_info *info = avalon9->device_data;
 	struct avalon9_pkg send_pkg;
@@ -1769,6 +1882,14 @@ static void avalon9_set_freq(struct cgpu_info *avalon9, int addr, int miner_id, 
 	tmp = AVA9_ASIC_TIMEOUT_CONST / f * 83 / 100;
 	tmp = be32toh(tmp);
 	memcpy(send_pkg.data + AVA9_DEFAULT_PLL_CNT * 4 + 4, &tmp, 4);
+
+	tmp = miner_id;
+	tmp = be32toh(tmp);
+	memcpy(send_pkg.data + AVA9_DEFAULT_PLL_CNT * 4 + 8, &tmp, 4);
+
+	tmp = asic_id;
+	tmp = be32toh(tmp);
+	memcpy(send_pkg.data + AVA9_DEFAULT_PLL_CNT * 4 + 12, &tmp, 4);
 	applog(LOG_DEBUG, "%s-%d-%d: avalon9 set freq miner %x-%x",
 			avalon9->drv->name, avalon9->device_id, addr,
 			miner_id, be32toh(tmp));
@@ -1871,6 +1992,61 @@ static void avalon9_set_ss_param(struct cgpu_info *avalon9, int addr)
 		avalon9_send_bc_pkgs(avalon9, &send_pkg);
 	else
 		avalon9_iic_xfer_pkg(avalon9, addr, &send_pkg, NULL);
+}
+
+static void avalon9_set_adjust_voltage_option(struct cgpu_info *avalon9, int addr, int32_t up_init, uint32_t up_factor, uint32_t up_threshold,
+						int32_t down_init, uint32_t down_factor, uint32_t down_threshold, uint32_t time)
+{
+	struct avalon9_info *info = avalon9->device_data;
+	struct avalon9_pkg send_pkg;
+	int32_t tmp;
+
+	memset(send_pkg.data, 0, AVA9_P_DATA_LEN);
+
+	tmp = be32toh(up_init);
+	memcpy(send_pkg.data + 0, &tmp, 4);
+	applog(LOG_DEBUG, "%s-%d-%d: avalon9 set up init %d",
+			avalon9->drv->name, avalon9->device_id, addr, up_init);
+
+	tmp = be32toh(up_factor);
+	memcpy(send_pkg.data + 4, &tmp, 4);
+	applog(LOG_DEBUG, "%s-%d-%d: avalon9 set up factor %d",
+			avalon9->drv->name, avalon9->device_id, addr, up_factor);
+
+	tmp = be32toh(up_threshold);
+	memcpy(send_pkg.data + 8, &tmp, 4);
+	applog(LOG_DEBUG, "%s-%d-%d: avalon9 set up threshold %d",
+			avalon9->drv->name, avalon9->device_id, addr, up_threshold);
+
+	tmp = be32toh(down_init);
+	memcpy(send_pkg.data + 12, &tmp, 4);
+	applog(LOG_DEBUG, "%s-%d-%d: avalon9 set down init %d",
+			avalon9->drv->name, avalon9->device_id, addr, down_init);
+
+	tmp = be32toh(down_factor);
+	memcpy(send_pkg.data + 16, &tmp, 4);
+	applog(LOG_DEBUG, "%s-%d-%d: avalon9 set down factor %d",
+			avalon9->drv->name, avalon9->device_id, addr, down_factor);
+
+	tmp = be32toh(down_threshold);
+	memcpy(send_pkg.data + 20, &tmp, 4);
+	applog(LOG_DEBUG, "%s-%d-%d: avalon9 set down threshold %d",
+			avalon9->drv->name, avalon9->device_id, addr, down_threshold);
+
+	tmp = be32toh(time);
+	memcpy(send_pkg.data + 24, &tmp, 4);
+	applog(LOG_DEBUG, "%s-%d-%d: avalon9 set time %d",
+			avalon9->drv->name, avalon9->device_id, addr, time);
+
+	/* Package the data */
+	avalon9_init_pkg(&send_pkg, AVA9_P_SET_ADJUST_VOLT, 1, 1);
+
+	if (addr == AVA9_MODULE_BROADCAST)
+		avalon9_send_bc_pkgs(avalon9, &send_pkg);
+	else
+		avalon9_iic_xfer_pkg(avalon9, addr, &send_pkg, NULL);
+
+	return;
 }
 
 static void avalon9_stratum_finish(struct cgpu_info *avalon9)
@@ -2037,7 +2213,7 @@ static int64_t avalon9_scanhash(struct thr_info *thr)
 			avalon9_set_voltage_level(avalon9, i, info->set_voltage_level[i]);
 			avalon9_set_asic_otp(avalon9, i, info->set_asic_otp[i]);
 			for (j = 0; j < info->miner_count[i]; j++)
-				avalon9_set_freq(avalon9, i, j, info->set_frequency[i][j]);
+				avalon9_set_freq(avalon9, i, j, 0, info->set_frequency[i][j]);
 			if (opt_avalon9_smart_speed)
 				avalon9_set_ss_param(avalon9, i);
 			avalon9_set_finish(avalon9, i);
@@ -2180,6 +2356,9 @@ static struct api_data *avalon9_api_stats(struct cgpu_info *avalon9)
 		sprintf(buf, " TMax[%d]", get_temp_max(info, i));
 		strcat(statbuf, buf);
 
+		sprintf(buf, " TAverage[%d]", get_temp_average(info, i));
+		strcat(statbuf, buf);
+
 		sprintf(buf, " Fan[%d]", info->fan_cpm[i]);
 		strcat(statbuf, buf);
 
@@ -2192,7 +2371,7 @@ static struct api_data *avalon9_api_stats(struct cgpu_info *avalon9)
 		sprintf(buf, " PS[");
 		strcat(statbuf, buf);
 		for (j = 0; j < AVA9_DEFAULT_POWER_INFO_CNT; j++) {
-			sprintf(buf, "%d ", info->power_info[j]);
+			sprintf(buf, "%d ", info->power_info[i][j]);
 			strcat(statbuf, buf);
 		}
 		statbuf[strlen(statbuf) - 1] = ']';
@@ -2243,8 +2422,12 @@ static struct api_data *avalon9_api_stats(struct cgpu_info *avalon9)
 		strcat(statbuf, buf);
 
 		if (opt_debug) {
-			sprintf(buf, " FAC0[%d]", info->factory_info[i][0]);
+			strcat(statbuf, " FAC0[");
+			sprintf(buf, "%d ", info->factory_info[i][0]);
 			strcat(statbuf, buf);
+			sprintf(buf, "%d ",info->factory_info[i][AVA9_DEFAULT_FACTORY_INFO_CNT]);
+			strcat(statbuf, buf);
+			statbuf[strlen(statbuf) - 1] = ']';
 
 			sprintf(buf, " OC[%d]", info->overclocking_info[0]);
 			strcat(statbuf, buf);
@@ -2284,6 +2467,36 @@ static struct api_data *avalon9_api_stats(struct cgpu_info *avalon9)
 				statbuf[strlen(statbuf)] = '\0';
 			}
 
+			int l;
+			/* i: modular, j: miner, k: asic, l: value */
+			for (j = 0; j < info->miner_count[i]; j++) {
+				for (l = 0; l < AVA9_DEFAULT_PLL_CNT; l++) {
+					sprintf(buf, " CF%d_%d[", j, l);
+					strcat(statbuf, buf);
+					for (k = 0; k < info->asic_count[i]; k++) {
+						sprintf(buf, "%3d ", info->get_frequency[i][j][k][l]);
+						strcat(statbuf, buf);
+					}
+
+					statbuf[strlen(statbuf) - 1] = ']';
+					statbuf[strlen(statbuf)] = '\0';
+				}
+			}
+
+			for (j = 0; j < info->miner_count[i]; j++) {
+				for (l = 0; l < AVA9_DEFAULT_PLL_CNT; l++) {
+					sprintf(buf, " PLLCNT%d_%d[", j, l);
+					strcat(statbuf, buf);
+					for (k = 0; k < info->asic_count[i]; k++) {
+						sprintf(buf, "%3d ", info->get_asic[i][j][k][2 + l]);
+						strcat(statbuf, buf);
+					}
+
+					statbuf[strlen(statbuf) - 1] = ']';
+					statbuf[strlen(statbuf)] = '\0';
+				}
+			}
+
 			for (j = 0; j < info->miner_count[i]; j++) {
 				sprintf(buf, " ERATIO%d[", j);
 				strcat(statbuf, buf);
@@ -2298,8 +2511,7 @@ static struct api_data *avalon9_api_stats(struct cgpu_info *avalon9)
 				statbuf[strlen(statbuf) - 1] = ']';
 			}
 
-			int l;
-			/* i: modular, j: miner, k:asic, l:value */
+			/* i: modular, j: miner, k: asic, l: value */
 			for (l = 0; l < 2; l++) {
 				for (j = 0; j < info->miner_count[i]; j++) {
 					sprintf(buf, " C_%02d_%02d[", j, l);
@@ -2453,21 +2665,28 @@ char *set_avalon9_device_voltage_level(struct cgpu_info *avalon9, char *arg)
 char *set_avalon9_device_freq(struct cgpu_info *avalon9, char *arg)
 {
 	struct avalon9_info *info = avalon9->device_data;
-	unsigned int val, addr = 0, i, j, k;
+	unsigned int val[AVA9_DEFAULT_PLL_CNT], addr = 0, i, j, k;
 	uint32_t miner_id = 0;
+	uint32_t asic_id = 0;
 
 	if (!(*arg))
 		return NULL;
 
-	sscanf(arg, "%d-%d-%d", &val, &addr, &miner_id);
+	sscanf(arg, "%d:%d:%d:%d-%d-%d-%d", &val[0], &val[1], &val[2], &val[3], &addr, &miner_id, &asic_id);
 
-	if (val > AVA9_DEFAULT_FREQUENCY_MAX)
+	if (val[AVA9_DEFAULT_PLL_CNT - 1] > AVA9_DEFAULT_FREQUENCY_MAX)
 		return "Invalid value passed to set_avalon9_device_freq";
 
 	if (addr >= AVA9_DEFAULT_MODULARS) {
 		applog(LOG_ERR, "invalid modular index: %d, valid range 0-%d", addr, (AVA9_DEFAULT_MODULARS - 1));
 		return "Invalid modular index to set_avalon9_device_freq";
 	}
+
+	if (miner_id > AVA9_DEFAULT_MINER_CNT)
+		return "Invalid miner id passed to set_avalon9_device_freq";
+
+	if (asic_id > AVA9_DEFAULT_ASIC_MAX)
+		return "Invalid asic id passed to set_avalon9_device_freq";
 
 	if (!addr) {
 		for (i = 1; i < AVA9_DEFAULT_MODULARS; i++) {
@@ -2481,15 +2700,15 @@ char *set_avalon9_device_freq(struct cgpu_info *avalon9, char *arg)
 
 			if (miner_id) {
 				for (k = 0; k < AVA9_DEFAULT_PLL_CNT; k++)
-					info->set_frequency[i][miner_id - 1][k] = val;
+					info->set_frequency[i][miner_id - 1][k] = val[k];
 
-				avalon9_set_freq(avalon9, i, miner_id - 1, info->set_frequency[i][miner_id - 1]);
+				avalon9_set_freq(avalon9, i, miner_id - 1, asic_id, info->set_frequency[i][miner_id - 1]);
 			} else {
 				for (j = 0; j < info->miner_count[i]; j++) {
 					for (k = 0; k < AVA9_DEFAULT_PLL_CNT; k++)
-						info->set_frequency[i][j][k] = val;
+						info->set_frequency[i][j][k] = val[k];
 
-					avalon9_set_freq(avalon9, i, j, info->set_frequency[i][j]);
+					avalon9_set_freq(avalon9, i, j, asic_id, info->set_frequency[i][j]);
 				}
 			}
 		}
@@ -2506,22 +2725,22 @@ char *set_avalon9_device_freq(struct cgpu_info *avalon9, char *arg)
 
 		if (miner_id) {
 			for (k = 0; k < AVA9_DEFAULT_PLL_CNT; k++)
-				info->set_frequency[addr][miner_id - 1][k] = val;
+				info->set_frequency[addr][miner_id - 1][k] = val[k];
 
-			avalon9_set_freq(avalon9, addr, miner_id - 1, info->set_frequency[addr][miner_id - 1]);
+			avalon9_set_freq(avalon9, addr, miner_id - 1, asic_id, info->set_frequency[addr][miner_id - 1]);
 
 		} else {
 			for (j = 0; j < info->miner_count[addr]; j++) {
 				for (k = 0; k < AVA9_DEFAULT_PLL_CNT; k++)
-					info->set_frequency[addr][j][k] = val;
+					info->set_frequency[addr][j][k] = val[k];
 
-				avalon9_set_freq(avalon9, addr, j, info->set_frequency[addr][j]);
+				avalon9_set_freq(avalon9, addr, j, asic_id, info->set_frequency[addr][j]);
 			}
 		}
 	}
 
-	applog(LOG_NOTICE, "%s-%d: Update frequency to %d",
-		avalon9->drv->name, avalon9->device_id, val);
+	applog(LOG_NOTICE, "%s-%d:%d:%d:%d: Update frequency to %d",
+		avalon9->drv->name, avalon9->device_id, val[0], val[1], val[2], val[3]);
 
 	return NULL;
 }
@@ -2578,6 +2797,25 @@ char *set_avalon9_overclocking_info(struct cgpu_info *avalon9, char *arg)
 
 	applog(LOG_NOTICE, "%s-%d: Update Overclocking info %d",
 		avalon9->drv->name, avalon9->device_id, val);
+
+	return NULL;
+}
+
+char *set_avalon9_adjust_voltage_info(struct cgpu_info *avalon9, char *arg)
+{
+	struct avalon9_info *info = avalon9->device_data;
+	int up_init, up_factor, up_threshold, down_init, down_factor, down_threshold, time;
+
+	if (!(*arg))
+		return NULL;
+
+	sscanf(arg, "%d-%d-%d-%d-%d-%d-%d", &up_init, &up_factor, &up_threshold, &down_init, &down_factor, &down_threshold, &time);
+
+	avalon9_set_adjust_voltage_option(avalon9, 0, up_init, up_factor, up_threshold, down_init, down_factor, down_threshold, time);
+
+	applog(LOG_NOTICE, "%s-%d: Update adjust voltage info: [%d, %d, %d, %d, %d, %d, %d]",
+		avalon9->drv->name, avalon9->device_id, up_init, up_factor, up_threshold,
+		down_init, down_factor, up_threshold, time);
 
 	return NULL;
 }
@@ -2719,6 +2957,15 @@ static char *avalon9_set_device(struct cgpu_info *avalon9, char *option, char *s
 		}
 
 		return set_avalon9_overclocking_info(avalon9, setting);
+	}
+
+	if (strcasecmp(option, "adjust-voltage") == 0) {
+		if (!setting || !*setting) {
+			sprintf(replybuf, "missing adjust-voltage info");
+			return replybuf;
+		}
+
+		return set_avalon9_adjust_voltage_info(avalon9, setting);
 	}
 
 	sprintf(replybuf, "Unknown option: %s", option);
